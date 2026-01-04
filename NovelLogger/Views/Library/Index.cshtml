@@ -1,1 +1,30 @@
-﻿
+﻿<div class="card shadow border-0 my-4">
+    <div class="card-header bg-secondary bg-gradient ml-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">Library</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <div class="row pb-4">
+            <div class="col-12 text-end">
+                <a asp-controller="Library" asp-action="Create" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Create New Entry
+                </a>
+            </div>
+        </div>
+        <table id="tblData" class="table table-bordered" >
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>URL</th>
+                    <th>Date Added</th>
+                    <th>Has Notes</th>
+                    <th>Is Saved</th>
+                    <th></th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>

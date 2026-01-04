@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NovelLogger.Models;
 
 namespace NovelLogger.Controllers
 {
@@ -7,6 +8,11 @@ namespace NovelLogger.Controllers
     public class LibraryController : Controller
     {
         public IActionResult Index()
+        {
+            return View();
+        }
+
+        public IActionResult Create()
         {
             return View();
         }
