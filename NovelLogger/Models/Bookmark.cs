@@ -1,5 +1,7 @@
-﻿using System.ComponentModel;
+﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NovelLogger.Models
 {
@@ -7,10 +9,25 @@ namespace NovelLogger.Models
     {
         [Key]
         public int Id { get; set; }
-        public string Name { get; set; }
-        public string URL { get; set; }
-        public DateTime DateAdded { get; set; }
-        public string Notes { get; set; }
+
+        [Required, MaxLength(450)]
+        public string UserId { get; set; } = null!;
+
+        [ForeignKey(nameof(UserId))]
+        public IdentityUser User { get; set; } = null!;
+
+        public int NovelId { get; set; }
+
+        [ForeignKey(nameof(NovelId))]
+        public Novel Novel { get; set; } = null!;
+
+        [Required, MaxLength(2048)]
+        [Url]
+        public string Url { get; set; } = null!;
+
+        [MaxLength(2000)]
+        public string? Notes { get; set; }
         public bool IsSaved { get; set; }
+        public DateTime DateAdded { get; set; } = DateTime.UtcNow;
     }
 }
