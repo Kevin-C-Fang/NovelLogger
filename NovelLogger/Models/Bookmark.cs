@@ -19,7 +19,6 @@ namespace NovelLogger.Models
         public Novel Novel { get; set; } = null!;
 
         [Required, MaxLength(2048)]
-        [Url]
         public string Url { get; set; } = null!;
 
         [MaxLength(2000)]
