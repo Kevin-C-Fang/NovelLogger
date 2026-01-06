@@ -4,13 +4,8 @@ using NovelLogger.Models;
 
 namespace NovelLogger.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext(options)
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
-        {
-            
-        }
-
         public DbSet<Novel> Novels { get; set; }
         public DbSet<Bookmark> Bookmarks { get; set; }
 
