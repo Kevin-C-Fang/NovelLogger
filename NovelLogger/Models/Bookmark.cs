@@ -13,9 +13,6 @@ namespace NovelLogger.Models
         [Required, MaxLength(450)]
         public string UserId { get; set; } = null!;
 
-        [ForeignKey(nameof(UserId))]
-        public IdentityUser User { get; set; } = null!;
-
         public int NovelId { get; set; }
 
         [ForeignKey(nameof(NovelId))]
