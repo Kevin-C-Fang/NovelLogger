@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NovelLogger.Data;
@@ -70,6 +71,30 @@ namespace NovelLogger.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+        #region API CALLS
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
+            var bookmarks = _db.Bookmarks.Where(b => b.UserId == userId).Include("Novel").Select(b => new
+                {
+                    novel = new { title = b.Novel.Title },
+                    url = b.Url,
+                    dateAdded = new
+                    {
+                        display = b.DateAdded.ToString("MM/dd/yyyy"),
+                        sort = b.DateAdded
+                    },
+                    hasNotes = !string.IsNullOrEmpty(b.Notes) ? "\u2714" : "\u2716",
+                    isSaved = b.IsSaved ? "\u2714" : "\u2716",
+                }).ToList();
+
+            return Json(new { data = bookmarks });
+        }
+
+        #endregion
 
         public string NormalizeTitle(string title)
         {
