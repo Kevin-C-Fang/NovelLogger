@@ -2,7 +2,7 @@
 
 namespace NovelLogger.Models
 {
-    public class CreateBookmarkVM
+    public class BookmarkVM
     {
         [Required]
         [Display(Name = "Novel Title")]

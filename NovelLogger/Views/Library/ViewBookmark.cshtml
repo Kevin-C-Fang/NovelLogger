@@ -4,38 +4,32 @@
     <div class="card-header bg-secondary bg-gradient ml-0 py-3">
         <div class="row">
             <div class="col-12 text-center">
-                <h2 class="text-white py-2">Add Latest Chapter</h2>
+                <h2 class="text-white py-2">View Chapter</h2>
             </div>
         </div>
     </div>
     <div class="card-body p-4">
-        <form asp-action="Create" method="post" class="row">
+        <form method="post" class="row">
             <div class="row">
                 <div>
                     <div class="border p-3">
-                        <div asp-validation-summary="ModelOnly"></div>
                         <div class="form-floating py-2 col-12">
-                            <input asp-for="NovelTitle" class="form-control border-0 shadow" />
+                            <input asp-for="NovelTitle" class="form-control border-0 shadow" readonly/>
                             <label asp-for="NovelTitle" class="ms-2"></label>
-                            <span asp-validation-for="NovelTitle" class="text-danger"></span>
                         </div>
                         <div class="form-floating py-2 col-12">
-                            <input asp-for="Url" class="form-control border-0 shadow" />
+                            <input asp-for="Url" class="form-control border-0 shadow" readonly />
                             <label asp-for="Url" class="ms-2"></label>
-                            <span asp-validation-for="Url" class="text-danger"></span>
                         </div>
                         <div class="py-2 col-12">
                             <label asp-for="Notes" class="ms-2 text-muted"></label>
-                            <textarea id="mytextarea" asp-for="Notes" class="form-control border-0 shadow"></textarea>
+                            <textarea id="mytextarea" asp-for="Notes" class="form-control border-0 shadow" disabled></textarea>
                         </div>
                         <div class="form-floating py-2 col-12">
-                            <input asp-for="IsSaved" />
+                            <input asp-for="IsSaved" disabled/>
                             <label asp-for="IsSaved" class="ms-2"></label>
                         </div>
                         <div class="row pt-2">
-                            <div class="col-6 col-md-3">
-                                <button type="submit" class="btn btn-primary form-control">Create</button>
-                            </div>
                             <div class="col-6 col-md-3">
                                 <a asp-controller="Library" asp-action="Index" class="btn btn-outline-primary border form-control">Back to List</a>
                             </div>
@@ -53,10 +47,7 @@
             selector: '#mytextarea',
             plugins: 'anchor autolink charmap codesample emoticons lists table visual blocks wordcount',
             toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | align lineheight | numlist bullist indent outdent',
+            readonly: true,
         });
     </script>
-
-    @{
-        <partial name="_ValidationScriptsPartial" />
-    }
 }

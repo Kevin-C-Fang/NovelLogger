@@ -31,7 +31,7 @@ namespace NovelLogger.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(CreateBookmarkVM vm)
+        public IActionResult Create(BookmarkVM vm)
         {
             if (!ModelState.IsValid)
             {
@@ -72,6 +72,25 @@ namespace NovelLogger.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        public IActionResult ViewBookmark(int id)
+        {
+            Bookmark bookmark = _db.Bookmarks.Where(u => u.Id == id).Include("Novel").FirstOrDefault();
+
+            if (bookmark == null) {
+                return NotFound();
+            }
+
+            BookmarkVM vm = new BookmarkVM()
+            {
+                NovelTitle = bookmark.Novel.Title,
+                Url = bookmark.Url,
+                Notes = bookmark.Notes,
+                IsSaved = bookmark.IsSaved,
+            };
+
+            return View(vm);
+        }
+
         #region API CALLS
         [HttpGet]
         public IActionResult GetAll()
@@ -89,6 +108,7 @@ namespace NovelLogger.Controllers
                     },
                     hasNotes = !string.IsNullOrEmpty(b.Notes) ? "\u2714" : "\u2716",
                     isSaved = b.IsSaved ? "\u2714" : "\u2716",
+                    id = b.Id,
                 }).ToList();
 
             return Json(new { data = bookmarks });
