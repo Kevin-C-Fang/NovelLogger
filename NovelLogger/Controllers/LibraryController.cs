@@ -41,7 +41,7 @@ namespace NovelLogger.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             string normalizedTitle = NormalizeTitle(vm.NovelTitle);
 
-            Novel novel = _db.Novels.FirstOrDefault(u => u.UserId == userId && u.TitleNormalized == normalizedTitle);
+            Novel? novel = _db.Novels.FirstOrDefault(u => u.UserId == userId && u.TitleNormalized == normalizedTitle);
 
             if (novel == null)
             {
@@ -72,9 +72,10 @@ namespace NovelLogger.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult ViewBookmark(int id)
+        public IActionResult ViewBookmark(int bookmarkId)
         {
-            Bookmark bookmark = _db.Bookmarks.Where(u => u.Id == id).Include("Novel").FirstOrDefault();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == bookmarkId).Include("Novel").FirstOrDefault();
 
             if (bookmark == null) {
                 return NotFound();
@@ -91,24 +92,77 @@ namespace NovelLogger.Controllers
             return View(vm);
         }
 
+        public IActionResult Edit(int bookmarkId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == bookmarkId).Include("Novel").FirstOrDefault();
+
+            if (bookmark == null)
+            {
+                return NotFound();
+            }
+
+            BookmarkVM vm = new BookmarkVM()
+            {
+                NovelTitle = bookmark.Novel.Title,
+                Url = bookmark.Url,
+                Notes = bookmark.Notes,
+                IsSaved = bookmark.IsSaved,
+            };
+
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(BookmarkVM vm)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(vm);
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == vm.BookmarkId).Include("Novel").FirstOrDefault();
+
+            if (bookmark == null)
+            {
+                return NotFound();
+            }
+
+            bookmark.Novel.Title = vm.NovelTitle;
+            bookmark.Novel.TitleNormalized = NormalizeTitle(vm.NovelTitle);
+            bookmark.Notes = vm.Notes;
+            bookmark.Url = vm.Url;
+
+            if (!bookmark.IsSaved)
+            {
+                bookmark.IsSaved = vm.IsSaved;
+            }
+
+            _db.SaveChanges();
+
+            return RedirectToAction("Index");
+        }
+
         #region API CALLS
         [HttpGet]
         public IActionResult GetAll()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
-            var bookmarks = _db.Bookmarks.Where(b => b.UserId == userId).Include("Novel").Select(b => new
+            var bookmarks = _db.Bookmarks.Where(u => u.UserId == userId).Include("Novel").Select(u => new
                 {
-                    novel = new { title = b.Novel.Title },
-                    url = b.Url,
+                    novel = new { title = u.Novel.Title },
+                    url = u.Url,
                     dateAdded = new
                     {
-                        display = b.DateAdded.ToString("MM/dd/yyyy"),
-                        sort = b.DateAdded
+                        display = u.DateAdded.ToString("MM/dd/yyyy"),
+                        sort = u.DateAdded
                     },
-                    hasNotes = !string.IsNullOrEmpty(b.Notes) ? "\u2714" : "\u2716",
-                    isSaved = b.IsSaved ? "\u2714" : "\u2716",
-                    id = b.Id,
+                    hasNotes = !string.IsNullOrEmpty(u.Notes) ? "\u2714" : "\u2716",
+                    isSaved = u.IsSaved ? "\u2714" : "\u2716",
+                    bookmarkId = u.Id,
                 }).ToList();
 
             return Json(new { data = bookmarks });

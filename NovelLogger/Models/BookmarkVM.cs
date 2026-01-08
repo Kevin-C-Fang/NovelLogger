@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations;
 
 namespace NovelLogger.Models
 {
@@ -17,7 +18,9 @@ namespace NovelLogger.Models
         [MaxLength(2000)]
         public string? Notes { get; set; }
 
-        [Display(Name = "Save this chapter")]
+        [Display(Name = "Save this bookmark")]
         public bool IsSaved { get; set; }
+
+        public int BookmarkId { get; set; }
     }
 }
