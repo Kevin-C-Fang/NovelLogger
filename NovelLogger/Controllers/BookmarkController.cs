@@ -108,6 +108,7 @@ namespace NovelLogger.Controllers
                 Url = bookmark.Url,
                 Notes = bookmark.Notes,
                 IsSaved = bookmark.IsSaved,
+                BookmarkId = bookmark.Id,
             };
 
             return View(vm);
