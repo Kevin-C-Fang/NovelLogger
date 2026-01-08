@@ -14,7 +14,7 @@ function loadDataTable() {
                 data: 'url',
                 "width": "30%",
                 "render": function (data) {
-                    return `<a href="${data}">${data}</a>`
+                    return `<a href="${data}" target="_blank">${data}</a>`
                 }
             },
             {
