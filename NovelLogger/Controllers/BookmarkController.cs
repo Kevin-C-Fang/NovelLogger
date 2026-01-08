@@ -41,6 +41,14 @@ namespace NovelLogger.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             string normalizedTitle = NormalizeTitle(vm.NovelTitle);
 
+            Bookmark? bookmark = _db.Bookmarks.Include("Novel").FirstOrDefault(u => u.UserId == userId && u.Novel.TitleNormalized == normalizedTitle && !u.IsSaved);
+
+            if (bookmark != null)
+            {
+                _db.Bookmarks.Remove(bookmark);
+                _db.SaveChanges();
+            }
+
             Novel? novel = _db.Novels.FirstOrDefault(u => u.UserId == userId && u.TitleNormalized == normalizedTitle);
 
             if (novel == null)
@@ -56,7 +64,7 @@ namespace NovelLogger.Controllers
                 _db.SaveChanges();
             }
 
-            Bookmark bookmark = new Bookmark()
+            bookmark = new Bookmark()
             {
                 UserId = userId,
                 NovelId = novel.Id,
