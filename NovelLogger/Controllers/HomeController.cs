@@ -17,7 +17,7 @@ namespace NovelLogger.Controllers
         {
             if (User?.Identity?.IsAuthenticated == true)
             {
-                return RedirectToAction("Index", "Library");
+                return RedirectToAction("Index", "Bookmark");
             }
 
             return View();

@@ -6,7 +6,7 @@ $(document).ready(function () {
 
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
-        "ajax": { url: '/library/getall' },
+        "ajax": { url: '/Bookmark/getall' },
 
         "columns": [
             { data: 'novel.title', "width": "20%" },
@@ -31,9 +31,9 @@ function loadDataTable() {
                 data: 'bookmarkId',
                 "render": function (data) {
                     return `<div class="w-75 btn-group" role="group">
-                        <a href="/Library/ViewBookmark?bookmarkId=${data}" class="btn btn-primary mx-2"> <i class="bi bi-folder2-open"></i> View</a>
-                        <a href="/Library/Edit?bookmarkId=${data}" class="btn btn-primary mx-2"> <i class="bi bi-pencil-square"></i> Edit</a>
-                        <a href="/Library/Delete?bookmarkId=${data}" class="btn btn-danger mx-2"> <i class="bi bi-trash-fill"></i> Delete</a>
+                        <a href="/Bookmark/ViewBookmark?bookmarkId=${data}" class="btn btn-primary mx-2"> <i class="bi bi-folder2-open"></i> View</a>
+                        <a href="/Bookmark/Edit?bookmarkId=${data}" class="btn btn-primary mx-2"> <i class="bi bi-pencil-square"></i> Edit</a>
+                        <a href="/Bookmark/Delete?bookmarkId=${data}" class="btn btn-danger mx-2"> <i class="bi bi-trash-fill"></i> Delete</a>
                     </div>`
                 },
                 "width": "25%"

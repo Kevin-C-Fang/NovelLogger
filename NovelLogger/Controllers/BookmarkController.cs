@@ -9,11 +9,11 @@ using System.Security.Claims;
 namespace NovelLogger.Controllers
 {
     [Authorize]
-    public class LibraryController : Controller
+    public class BookmarkController : Controller
     {
         private readonly ApplicationDbContext _db;
 
-        public LibraryController(ApplicationDbContext db)
+        public BookmarkController(ApplicationDbContext db)
         {
             _db = db;
         }
