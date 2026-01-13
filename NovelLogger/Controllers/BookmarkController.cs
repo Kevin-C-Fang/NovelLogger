@@ -217,7 +217,7 @@ namespace NovelLogger.Controllers
                     url = u.Url,
                     dateAdded = new
                     {
-                        display = u.DateAdded.ToString("MM/dd/yyyy"),
+                        display = u.DateAdded.ToString("MM/dd/yyyy hh:mm:ss tt"),
                         sort = u.DateAdded
                     },
                     hasNotes = !string.IsNullOrEmpty(u.Notes) ? "\u2714" : "\u2716",
