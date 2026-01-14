@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +26,6 @@ namespace NovelLogger.Controllers
 
         public IActionResult Create()
         {
-            // TODO: Should novel.title be autofilled with prior novels relevant to the user?
             return View();
         }
 
@@ -154,57 +154,6 @@ namespace NovelLogger.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        public IActionResult Delete(int bookmarkId)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == bookmarkId).Include("Novel").FirstOrDefault();
-
-            if (bookmark == null)
-            {
-                return NotFound();
-            }
-
-            BookmarkVM vm = new BookmarkVM()
-            {
-                NovelTitle = bookmark.Novel.Title,
-                Url = bookmark.Url,
-                Notes = bookmark.Notes,
-                IsSaved = bookmark.IsSaved,
-                BookmarkId = bookmark.Id,
-            };
-
-            return View(vm);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [ActionName("Delete")]
-        public IActionResult DeletePost(int bookmarkId)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == bookmarkId).FirstOrDefault();
-
-            if (bookmark == null)
-            {
-                return NotFound("Bookmark was not found.");
-            }
-
-            _db.Bookmarks.Remove(bookmark);
-            _db.SaveChanges();
-
-            // TODO: Remove later when I've added a page that allows user to view Novels and update/delete.
-            Novel? novel = _db.Novels.Where(u => u.UserId == userId && u.Id == bookmark.NovelId).FirstOrDefault();
-            if(novel == null)
-            {
-                return NotFound("Bookmark deleted, Novel was not found.");
-            }
-
-            _db.Novels.Remove(novel);
-            _db.SaveChanges();
-
-            return RedirectToAction(nameof(Index));
-        }
-
         #region API CALLS
         [HttpGet]
         public IActionResult GetAll()
@@ -243,6 +192,23 @@ namespace NovelLogger.Controllers
                 .OrderBy(u=> u.TitleNormalized).Select(n => n.Title).Take(5).ToList();
 
             return Json(novelTitles);
+        }
+
+        [HttpDelete]
+        public IActionResult Delete(int? bookmarkId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == bookmarkId).FirstOrDefault();
+
+            if (bookmark == null)
+            {
+                return Json(new { success = false, message = "Error while deleting" });
+            }
+
+            _db.Bookmarks.Remove(bookmark);
+            _db.SaveChanges();
+
+            return Json(new { success = true, message = "Delete Successful" });
         }
         #endregion
 
