@@ -15,7 +15,8 @@
                     <div class="border p-3">
                         <div asp-validation-summary="ModelOnly"></div>
                         <div class="form-floating py-2 col-12">
-                            <input asp-for="NovelTitle" class="form-control border-0 shadow" />
+                            <input asp-for="NovelTitle" id="novelTitle" class="form-control border-0 shadow" />
+                            <ul id="suggestions" class="list-group"></ul>
                             <label asp-for="NovelTitle" class="ms-2"></label>
                             <span asp-validation-for="NovelTitle" class="text-danger"></span>
                         </div>
@@ -56,6 +57,7 @@
         });
     </script>
 
+    <script src="~/js/novelTitleSuggestion.js"></script>
     @{
         <partial name="_ValidationScriptsPartial" />
     }

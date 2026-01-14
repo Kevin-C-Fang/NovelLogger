@@ -228,6 +228,22 @@ namespace NovelLogger.Controllers
             return Json(new { data = bookmarks });
         }
 
+        [HttpGet]
+        public IActionResult NovelTitleSuggestions(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+            {
+                return Json(null);
+            }
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            string normalized = NormalizeTitle(text);
+
+            var novelTitles = _db.Novels.Where(u => u.UserId == userId && u.TitleNormalized.Contains(normalized))
+                .OrderBy(u=> u.TitleNormalized).Select(n => n.Title).Take(5).ToList();
+
+            return Json(novelTitles);
+        }
         #endregion
 
         public string NormalizeTitle(string title)
