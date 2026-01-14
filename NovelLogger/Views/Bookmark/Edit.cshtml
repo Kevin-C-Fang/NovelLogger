@@ -29,7 +29,7 @@
                             <label asp-for="Notes" class="ms-2 text-muted"></label>
                             <textarea id="mytextarea" asp-for="Notes" class="form-control border-0 shadow"></textarea>
                         </div>
-                        <div class="form-floating py-2 col-12">
+                        <div>
                             @if (Model.IsSaved)
                             {
                                 <input asp-for="IsSaved" disabled />
@@ -38,7 +38,9 @@
                             {
                                 <input asp-for="IsSaved" />
                             }
-                            <label asp-for="IsSaved" class="ms-2"></label>
+                            <label asp-for="IsSaved"></label>
+
+                            <span title="Save this bookmark to prevent from being overwritten by new bookmarks for this novel." style="cursor: help;">ⓘ</span>
                         </div>
                         <div class="row pt-2">
                             <div class="col-6 col-md-3">
