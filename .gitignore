@@ -364,3 +364,4 @@ FodyWeavers.xsd
 
 # Connection strings and Secret keys
 appsettings.Development.json
+/NovelLogger/appsettings.Development.json
