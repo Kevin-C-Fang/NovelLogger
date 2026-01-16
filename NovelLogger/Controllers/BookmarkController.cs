@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NovelLogger.Data;
 using NovelLogger.Models;
+using NovelLogger.Utility;
 using System.Security.Claims;
 
 namespace NovelLogger.Controllers
@@ -26,7 +27,16 @@ namespace NovelLogger.Controllers
 
         public IActionResult Create()
         {
-            return View();
+            BookmarkVM vm = new BookmarkVM()
+            {
+                NovelStatusList = NovelStatusStrings.All.Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                {
+                    Text = s,
+                    Value = s,
+                })
+            };
+
+            return View(vm);
         }
 
         [HttpPost]
@@ -57,7 +67,8 @@ namespace NovelLogger.Controllers
                 {
                     UserId = userId,
                     Title = vm.NovelTitle,
-                    TitleNormalized = normalizedTitle
+                    TitleNormalized = normalizedTitle,
+                    NovelStatus = vm.NovelStatus,
                 };
 
                 _db.Novels.Add(novel);
@@ -95,6 +106,7 @@ namespace NovelLogger.Controllers
                 Url = bookmark.Url,
                 Notes = bookmark.Notes,
                 IsSaved = bookmark.IsSaved,
+                NovelStatus = bookmark.Novel.NovelStatus,
             };
 
             return View(vm);
@@ -117,6 +129,12 @@ namespace NovelLogger.Controllers
                 Notes = bookmark.Notes,
                 IsSaved = bookmark.IsSaved,
                 BookmarkId = bookmark.Id,
+                NovelStatus = bookmark.Novel.NovelStatus,
+                NovelStatusList = NovelStatusStrings.All.Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                {
+                    Text = s,
+                    Value = s,
+                })
             };
 
             return View(vm);
@@ -141,6 +159,7 @@ namespace NovelLogger.Controllers
 
             bookmark.Novel.Title = vm.NovelTitle;
             bookmark.Novel.TitleNormalized = NormalizeTitle(vm.NovelTitle);
+            bookmark.Novel.NovelStatus = vm.NovelStatus;
             bookmark.Notes = vm.Notes;
             bookmark.Url = vm.Url;
 

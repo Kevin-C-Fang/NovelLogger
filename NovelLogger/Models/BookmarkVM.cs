@@ -1,5 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using NovelLogger.Utility;
 
 namespace NovelLogger.Models
 {
@@ -22,5 +25,12 @@ namespace NovelLogger.Models
         public bool IsSaved { get; set; }
 
         public int BookmarkId { get; set; }
+
+        [Required]
+        [Display(Name = "Novel Status")]
+        public string NovelStatus { get; set; } = null!;
+
+        [ValidateNever]
+        public IEnumerable<SelectListItem> NovelStatusList { get; set; } = null!;
     }
 }

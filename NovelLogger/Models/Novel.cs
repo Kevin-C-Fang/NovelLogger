@@ -20,5 +20,8 @@ namespace NovelLogger.Models
 
         [Required, MaxLength(200)]
         public string TitleNormalized { get; set; } = null!;
+
+        [Required]
+        public string NovelStatus { get; set; } = null!;
     }
 }
