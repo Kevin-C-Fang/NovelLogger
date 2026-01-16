@@ -2,26 +2,23 @@
     <div class="card-header bg-secondary bg-gradient ml-0 py-3">
         <div class="row">
             <div class="col-12 text-center">
-                <h2 class="text-white py-2">Bookmarks</h2>
+                <h2 class="text-white py-2">Novels</h2>
             </div>
         </div>
     </div>
     <div class="card-body p-4">
         <div class="row pb-4">
             <div class="col-12 text-end">
-                <a asp-controller="Bookmark" asp-action="Create" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> Add Bookmark
+                <a asp-controller="Novel" asp-action="Create" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Add Novel
                 </a>
             </div>
         </div>
-        <table id="tblData" class="table table-bordered" >
+        <table id="tblData" class="table table-bordered">
             <thead>
                 <tr>
                     <th>Novel Title</th>
-                    <th>URL</th>
-                    <th>Date Added</th>
-                    <th>Has Notes</th>
-                    <th>Is Saved</th>
+                    <th>Novel Status</th>
                     <th></th>
                 </tr>
             </thead>
@@ -30,5 +27,5 @@
 </div>
 
 @section Scripts {
-    <script src="~/js/bookmark.js"></script>
+    <script src="~/js/novel.js"></script>
 }

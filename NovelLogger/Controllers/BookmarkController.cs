@@ -49,7 +49,7 @@ namespace NovelLogger.Controllers
             }
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            string normalizedTitle = NormalizeTitle(vm.NovelTitle);
+            string normalizedTitle = StringUtilityMethods.NormalizeTitle(vm.NovelTitle);
 
             Bookmark? bookmark = _db.Bookmarks.Include("Novel").FirstOrDefault(u => u.UserId == userId && u.Novel.TitleNormalized == normalizedTitle && !u.IsSaved);
 
@@ -158,7 +158,7 @@ namespace NovelLogger.Controllers
             }
 
             bookmark.Novel.Title = vm.NovelTitle;
-            bookmark.Novel.TitleNormalized = NormalizeTitle(vm.NovelTitle);
+            bookmark.Novel.TitleNormalized = StringUtilityMethods.NormalizeTitle(vm.NovelTitle);
             bookmark.Novel.NovelStatus = vm.NovelStatus;
             bookmark.Notes = vm.Notes;
             bookmark.Url = vm.Url;
@@ -205,7 +205,7 @@ namespace NovelLogger.Controllers
             }
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            string normalized = NormalizeTitle(text);
+            string normalized = StringUtilityMethods.NormalizeTitle(text);
 
             var novelTitles = _db.Novels.Where(u => u.UserId == userId && u.TitleNormalized.Contains(normalized))
                 .OrderBy(u=> u.TitleNormalized).Select(n => n.Title).Take(5).ToList();
@@ -230,10 +230,5 @@ namespace NovelLogger.Controllers
             return Json(new { success = true, message = "Delete Successful" });
         }
         #endregion
-
-        public string NormalizeTitle(string title)
-        {
-            return string.Join(' ', title.Trim().ToLowerInvariant().Split(' ', StringSplitOptions.RemoveEmptyEntries));
-        }
     }
 }
