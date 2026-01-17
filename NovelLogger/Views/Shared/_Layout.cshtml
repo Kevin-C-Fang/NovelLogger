@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/NovelLogger.styles.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="//cdn.datatables.net/2.3.5/css/dataTables.dataTables.min.css" />
+    @RenderSection("Styles", required: false)
 </head>
 <body>
     <header>
@@ -56,7 +56,6 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="//cdn.datatables.net/2.3.5/js/dataTables.min.js" asp-append-version="true"></script>
     <script src="https://cdn.tiny.cloud/1/5ucms0f9cxzr50tcmrw0kujr0t8undfr5bdar0h5as00ij8w/tinymce/8/tinymce.min.js" referrerpolicy="origin" crossorigin="anonymous"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

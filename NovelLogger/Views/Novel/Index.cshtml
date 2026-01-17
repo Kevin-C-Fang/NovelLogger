@@ -1,4 +1,9 @@
-﻿<div class="card shadow border-0 my-4">
+﻿@section Styles {
+    <link rel="stylesheet" href="//cdn.datatables.net/2.3.5/css/dataTables.dataTables.min.css" />
+    <link rel="stylesheet" href="~/css/tableDisplay.css" asp-append-version="true" />
+}
+
+<div class="card shadow border-0 my-4">
     <div class="card-header bg-secondary bg-gradient ml-0 py-3">
         <div class="row">
             <div class="col-12 text-center">
@@ -27,5 +32,6 @@
 </div>
 
 @section Scripts {
+    <script src="//cdn.datatables.net/2.3.5/js/dataTables.min.js" asp-append-version="true"></script>
     <script src="~/js/novel.js"></script>
 }

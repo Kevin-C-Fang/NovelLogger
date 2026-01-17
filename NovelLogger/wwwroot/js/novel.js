@@ -7,9 +7,10 @@ $(document).ready(function () {
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
         "ajax": { url: '/Novel/getall' },
+        autoWidth: false,
 
         "columns": [
-            { data: 'novelTitle', "width": "20%" },
+            { data: 'novelTitle', "width": "20%", className: "td-truncate" },
             { data: 'novelStatus', "width": "20%" },
             {
                 data: 'novelId',

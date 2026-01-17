@@ -1,0 +1,10 @@
+﻿#tblData {
+    table-layout: fixed;
+    width: 100%;
+}
+
+#tblData td.td-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

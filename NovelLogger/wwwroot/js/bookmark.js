@@ -7,15 +7,16 @@ $(document).ready(function () {
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
         "ajax": { url: '/Bookmark/getall' },
-
+        autoWidth: false,
         "columns": [
             { data: 'novel.title', "width": "20%" },
             {
                 data: 'url',
-                "width": "30%",
-                "render": function (data) {
+                width: "30%",
+                render: function (data) {
                     return `<a href="${data}" target="_blank">${data}</a>`
-                }
+                },
+                className: "td-truncate"
             },
             {
                 data: 'dateAdded',
