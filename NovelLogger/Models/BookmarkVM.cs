@@ -18,7 +18,7 @@ namespace NovelLogger.Models
         [MaxLength(2048)]
         public string Url { get; set; } = null!;
 
-        [MaxLength(2000)]
+        [MaxLength(2000, ErrorMessage = "The field Notes has a maximum length of 2000 characters.")]
         public string? Notes { get; set; }
 
         [Display(Name = "Save this bookmark")]

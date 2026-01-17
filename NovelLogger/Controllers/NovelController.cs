@@ -42,6 +42,12 @@ namespace NovelLogger.Controllers
         {
             if (!ModelState.IsValid)
             {
+                vm.NovelStatusList = NovelStatusStrings.All.Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                {
+                    Text = s,
+                    Value = s,
+                });
+
                 return View(vm);
             }
 
@@ -90,6 +96,12 @@ namespace NovelLogger.Controllers
         {
             if (!ModelState.IsValid)
             {
+                vm.NovelStatusList = NovelStatusStrings.All.Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                {
+                    Text = s,
+                    Value = s,
+                });
+
                 return View(vm);
             }
 
