@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using NovelLogger.Data;
+using NovelLogger.Services;
 using NovelLogger.Utility;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,6 +23,7 @@ builder.Services.AddAuthentication().AddGoogle(googleOptions =>
 
 builder.Services.AddRazorPages();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
+builder.Services.AddScoped<ISaveChangesService, SaveChangesService>();
 
 var app = builder.Build();
 

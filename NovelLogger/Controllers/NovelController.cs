@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using NovelLogger.Data;
 using NovelLogger.Models;
+using NovelLogger.Services;
 using NovelLogger.Utility;
 using System.Security.Claims;
 
@@ -11,10 +13,12 @@ namespace NovelLogger.Controllers
     public class NovelController : Controller
     {
         private readonly ApplicationDbContext _db;
+        private readonly ISaveChangesService _saveChangesService;
 
-        public NovelController(ApplicationDbContext db)
+        public NovelController(ApplicationDbContext db, ISaveChangesService saveChangesService)
         {
             _db = db;
+            _saveChangesService = saveChangesService;
         }
 
         public IActionResult Index()
@@ -53,7 +57,13 @@ namespace NovelLogger.Controllers
             };
 
             _db.Novels.Add(novel);
-            _db.SaveChanges();
+
+            if (_saveChangesService.TrySave() == SaveResult.Duplicate)
+            {
+                ModelState.AddModelError(nameof(vm.NovelTitle), "This novel already exists.");
+                vm.NovelStatusList = NovelStatusStrings.StatusOptions;
+                return View(vm);
+            }
 
             return RedirectToAction(nameof(Index));
         }
@@ -101,7 +111,12 @@ namespace NovelLogger.Controllers
             novel.TitleNormalized = StringUtilityMethods.NormalizeTitle(vm.NovelTitle);
             novel.NovelStatus = vm.NovelStatus;
 
-            _db.SaveChanges();
+            if (_saveChangesService.TrySave() == SaveResult.Duplicate)
+            {
+                ModelState.AddModelError(nameof(vm.NovelTitle), "This novel already exists.");
+                vm.NovelStatusList = NovelStatusStrings.StatusOptions;
+                return View(vm);
+            }
 
             return RedirectToAction(nameof(Index));
         }
