@@ -1,5 +1,8 @@
 ﻿using Humanizer;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using NovelLogger.Models;
+using System.Collections.Generic;
+using System.Security.Claims;
 
 namespace NovelLogger.Utility
 {
@@ -10,12 +13,15 @@ namespace NovelLogger.Utility
         public const string Completed = "Completed";
         public const string DidNotLike = "Didn't Like";
 
-        public static readonly string[] All =
-        {
-            UpToDate,
-            DidNotFinish,
-            Completed,
-            DidNotLike
-        };
+        private static readonly IEnumerable<SelectListItem> _statusOptions =
+            new List<SelectListItem>
+            {
+                new(UpToDate, UpToDate),
+                new(DidNotFinish, DidNotFinish),
+                new(Completed, Completed),
+                new(DidNotLike, DidNotLike)
+            };
+
+        public static IEnumerable<SelectListItem> StatusOptions => _statusOptions;
     }
 }

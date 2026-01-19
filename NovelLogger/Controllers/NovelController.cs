@@ -26,11 +26,7 @@ namespace NovelLogger.Controllers
         {
             NovelVM vm = new NovelVM()
             {
-                NovelStatusList = NovelStatusStrings.All.Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-                {
-                    Text = s,
-                    Value = s,
-                })
+                NovelStatusList = NovelStatusStrings.StatusOptions,
             };
 
             return View(vm);
@@ -42,11 +38,7 @@ namespace NovelLogger.Controllers
         {
             if (!ModelState.IsValid)
             {
-                vm.NovelStatusList = NovelStatusStrings.All.Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-                {
-                    Text = s,
-                    Value = s,
-                });
+                vm.NovelStatusList = NovelStatusStrings.StatusOptions;
 
                 return View(vm);
             }
@@ -55,7 +47,7 @@ namespace NovelLogger.Controllers
             Novel novel = new Novel()
             {
                 Title = vm.NovelTitle,
-                TitleNormalized = StringUtilityMethods.NormalizeTitle(vm.NovelStatus),
+                TitleNormalized = StringUtilityMethods.NormalizeTitle(vm.NovelTitle),
                 NovelStatus = vm.NovelStatus,
                 UserId = userId,
             };
@@ -80,11 +72,7 @@ namespace NovelLogger.Controllers
             {
                 NovelTitle = novel.Title,
                 NovelStatus = novel.NovelStatus,
-                NovelStatusList = NovelStatusStrings.All.Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-                {
-                    Text = s,
-                    Value = s,
-                })
+                NovelStatusList = NovelStatusStrings.StatusOptions,
             };
 
             return View(vm);
@@ -96,11 +84,7 @@ namespace NovelLogger.Controllers
         {
             if (!ModelState.IsValid)
             {
-                vm.NovelStatusList = NovelStatusStrings.All.Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-                {
-                    Text = s,
-                    Value = s,
-                });
+                vm.NovelStatusList = NovelStatusStrings.StatusOptions;
 
                 return View(vm);
             }

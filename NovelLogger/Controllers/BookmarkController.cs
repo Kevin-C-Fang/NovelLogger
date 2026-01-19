@@ -29,11 +29,7 @@ namespace NovelLogger.Controllers
         {
             BookmarkVM vm = new BookmarkVM()
             {
-                NovelStatusList = NovelStatusStrings.All.Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-                {
-                    Text = s,
-                    Value = s,
-                })
+                NovelStatusList = NovelStatusStrings.StatusOptions,
             };
 
             return View(vm);
@@ -45,11 +41,7 @@ namespace NovelLogger.Controllers
         {
             if (!ModelState.IsValid)
             {
-                vm.NovelStatusList = NovelStatusStrings.All.Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-                {
-                    Text = s,
-                    Value = s,
-                });
+                vm.NovelStatusList = NovelStatusStrings.StatusOptions;
 
                 return View(vm);
             }
@@ -57,12 +49,11 @@ namespace NovelLogger.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             string normalizedTitle = StringUtilityMethods.NormalizeTitle(vm.NovelTitle);
 
-            Bookmark? bookmark = _db.Bookmarks.Include("Novel").FirstOrDefault(u => u.UserId == userId && u.Novel.TitleNormalized == normalizedTitle && !u.IsSaved);
+            Bookmark? bookmark = _db.Bookmarks.FirstOrDefault(u => u.UserId == userId && u.Novel.TitleNormalized == normalizedTitle && !u.IsSaved);
 
             if (bookmark != null)
             {
                 _db.Bookmarks.Remove(bookmark);
-                _db.SaveChanges();
             }
 
             Novel? novel = _db.Novels.FirstOrDefault(u => u.UserId == userId && u.TitleNormalized == normalizedTitle);
@@ -78,13 +69,12 @@ namespace NovelLogger.Controllers
                 };
 
                 _db.Novels.Add(novel);
-                _db.SaveChanges();
             }
 
             bookmark = new Bookmark()
             {
                 UserId = userId,
-                NovelId = novel.Id,
+                Novel = novel,
                 Url = vm.Url,
                 Notes = vm.Notes,
                 IsSaved = vm.IsSaved,
@@ -100,7 +90,7 @@ namespace NovelLogger.Controllers
         public IActionResult ViewBookmark(int bookmarkId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == bookmarkId).Include("Novel").FirstOrDefault();
+            Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == bookmarkId).Include(b => b.Novel).FirstOrDefault();
 
             if (bookmark == null) {
                 return NotFound();
@@ -121,7 +111,7 @@ namespace NovelLogger.Controllers
         public IActionResult Edit(int bookmarkId)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == bookmarkId).Include("Novel").FirstOrDefault();
+            Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == bookmarkId).Include(b => b.Novel).FirstOrDefault();
 
             if (bookmark == null)
             {
@@ -136,11 +126,7 @@ namespace NovelLogger.Controllers
                 IsSaved = bookmark.IsSaved,
                 BookmarkId = bookmark.Id,
                 NovelStatus = bookmark.Novel.NovelStatus,
-                NovelStatusList = NovelStatusStrings.All.Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-                {
-                    Text = s,
-                    Value = s,
-                })
+                NovelStatusList = NovelStatusStrings.StatusOptions,
             };
 
             return View(vm);
@@ -152,17 +138,13 @@ namespace NovelLogger.Controllers
         {
             if (!ModelState.IsValid)
             {
-                vm.NovelStatusList = NovelStatusStrings.All.Select(s => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-                {
-                    Text = s,
-                    Value = s,
-                });
+                vm.NovelStatusList = NovelStatusStrings.StatusOptions;
 
                 return View(vm);
             }
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == vm.BookmarkId).Include("Novel").FirstOrDefault();
+            Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == vm.BookmarkId).Include(b => b.Novel).FirstOrDefault();
 
             if (bookmark == null)
             {
@@ -191,7 +173,7 @@ namespace NovelLogger.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
-            var bookmarks = _db.Bookmarks.Where(u => u.UserId == userId).Include("Novel").Select(u => new
+            var bookmarks = _db.Bookmarks.Where(u => u.UserId == userId).Include(b => b.Novel).Select(u => new
                 {
                     novel = new { title = u.Novel.Title },
                     url = u.Url,
