@@ -195,8 +195,8 @@ namespace NovelLogger.Controllers
                         display = u.DateAdded.ToString("MM/dd/yyyy hh:mm:ss tt"),
                         sort = u.DateAdded
                     },
-                    hasNotes = !string.IsNullOrEmpty(u.Notes) ? "\u2714" : "\u2716",
-                    isSaved = u.IsSaved ? "\u2714" : "\u2716",
+                    hasNotes = !string.IsNullOrEmpty(u.Notes) ? "✓" : "✗",
+                    isSaved = u.IsSaved ? "✓" : "✗",
                     bookmarkId = u.Id,
                 }).ToList();
 

@@ -12,7 +12,7 @@ function loadDataTable() {
             { data: 'novel.title', "width": "20%" },
             {
                 data: 'url',
-                width: "30%",
+                width: "20%",
                 render: function (data) {
                     return `<a href="${data}" target="_blank">${data}</a>`
                 },
@@ -31,7 +31,7 @@ function loadDataTable() {
             {
                 data: 'bookmarkId',
                 "render": function (data) {
-                    return `<div class="w-75 btn-group" role="group">
+                    return `<div class="w-100 btn-group" role="group">
                         <a href="/Bookmark/ViewBookmark?bookmarkId=${data}" class="btn btn-primary mx-2"> <i class="bi bi-folder2-open"></i> View</a>
                         <a href="/Bookmark/Edit?bookmarkId=${data}" class="btn btn-primary mx-2"> <i class="bi bi-pencil-square"></i> Edit</a>
                         <a onClick=Delete('/Bookmark/Delete?bookmarkId=${data}') class="btn btn-danger mx-2"> <i class="bi bi-trash-fill"></i> Delete</a>
