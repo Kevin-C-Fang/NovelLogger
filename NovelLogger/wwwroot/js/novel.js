@@ -10,14 +10,14 @@ function loadDataTable() {
         autoWidth: false,
 
         "columns": [
-            { data: 'novelTitle', "width": "50%", className: "td-truncate" },
+            { data: 'novelTitle', "width": "50%" },
             { data: 'novelStatus', "width": "40%" },
             {
                 data: 'novelId',
                 "render": function (data) {
                     return `
                     <div class="dropdown">
-                      <button class="btn btn-primary dropdown-toggle w-100 action-btn" data-bs-toggle="dropdown">Actions</button>
+                      <button class="btn btn-primary dropdown-toggle w-100" data-bs-toggle="dropdown">Actions</button>
                       <ul class="dropdown-menu">
                         <li><a href="/Novel/Edit?novelId=${data}" class="dropdown-item">Edit</a></li>
                         <li><a href="#" onClick=Delete('/Novel/Delete?novelId=${data}') class="dropdown-item text-danger">Delete</a></li>

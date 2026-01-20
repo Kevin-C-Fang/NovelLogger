@@ -33,7 +33,7 @@ function loadDataTable() {
                 "render": function (data) {
                     return`
                     <div class="dropdown">
-                      <button class="btn btn-primary dropdown-toggle w-100 action-btn" data-bs-toggle="dropdown">Actions</button>
+                      <button class="btn btn-primary dropdown-toggle w-100" data-bs-toggle="dropdown">Actions</button>
                       <ul class="dropdown-menu">
                         <li><a href="/Bookmark/ViewBookmark?bookmarkId=${data}" class="dropdown-item">View</a></li>
                         <li><a href="/Bookmark/Edit?bookmarkId=${data}" class="dropdown-item">Edit</a></li>
