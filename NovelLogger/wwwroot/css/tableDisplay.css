@@ -8,3 +8,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
+
+.action-btn {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

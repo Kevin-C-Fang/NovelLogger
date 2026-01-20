@@ -11,16 +11,21 @@ function loadDataTable() {
 
         "columns": [
             { data: 'novelTitle', "width": "50%", className: "td-truncate" },
-            { data: 'novelStatus', "width": "25%" },
+            { data: 'novelStatus', "width": "40%" },
             {
                 data: 'novelId',
                 "render": function (data) {
-                    return `<div class="w-100 btn-group" role="group">
-                        <a href="/Novel/Edit?novelId=${data}" class="btn btn-primary mx-2"> <i class="bi bi-pencil-square"></i> Edit</a>
-                        <a onClick=Delete('/Novel/Delete?novelId=${data}') class="btn btn-danger mx-2"> <i class="bi bi-trash-fill"></i> Delete</a>
-                    </div>`
+                    return `
+                    <div class="dropdown">
+                      <button class="btn btn-primary dropdown-toggle w-100 action-btn" data-bs-toggle="dropdown">Actions</button>
+                      <ul class="dropdown-menu">
+                        <li><a href="/Novel/Edit?novelId=${data}" class="dropdown-item">Edit</a></li>
+                        <li><a href="#" onClick=Delete('/Novel/Delete?novelId=${data}') class="dropdown-item text-danger">Delete</a></li>
+                      </ul>
+                    </div>
+                    `
                 },
-                "width": "25%"
+                "width": "10%",
             }
         ]
     });

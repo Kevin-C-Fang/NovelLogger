@@ -9,10 +9,10 @@ function loadDataTable() {
         "ajax": { url: '/Bookmark/getall' },
         autoWidth: false,
         "columns": [
-            { data: 'novel.title', "width": "20%" },
+            { data: 'novel.title', "width": "35%" },
             {
                 data: 'url',
-                width: "20%",
+                width: "25%",
                 render: function (data) {
                     return `<a href="${data}" target="_blank">${data}</a>`
                 },
@@ -26,18 +26,23 @@ function loadDataTable() {
                     sort: 'sort'   
                 }
             },
-            { data: 'hasNotes', "width": "5%" },
-            { data: 'isSaved', "width": "5%" },
+            { data: 'hasNotes', "width": "10%" },
+            { data: 'isSaved', "width": "10%" },
             {
                 data: 'bookmarkId',
                 "render": function (data) {
-                    return `<div class="w-100 btn-group" role="group">
-                        <a href="/Bookmark/ViewBookmark?bookmarkId=${data}" class="btn btn-primary mx-2"> <i class="bi bi-folder2-open"></i> View</a>
-                        <a href="/Bookmark/Edit?bookmarkId=${data}" class="btn btn-primary mx-2"> <i class="bi bi-pencil-square"></i> Edit</a>
-                        <a onClick=Delete('/Bookmark/Delete?bookmarkId=${data}') class="btn btn-danger mx-2"> <i class="bi bi-trash-fill"></i> Delete</a>
-                    </div>`
+                    return`
+                    <div class="dropdown">
+                      <button class="btn btn-primary dropdown-toggle w-100 action-btn" data-bs-toggle="dropdown">Actions</button>
+                      <ul class="dropdown-menu">
+                        <li><a href="/Bookmark/ViewBookmark?bookmarkId=${data}" class="dropdown-item">View</a></li>
+                        <li><a href="/Bookmark/Edit?bookmarkId=${data}" class="dropdown-item">Edit</a></li>
+                        <li><a href="#" onClick=Delete('/Bookmark/Delete?bookmarkId=${data}') class="dropdown-item text-danger">Delete</a></li>
+                      </ul>
+                    </div>
+                    `
                 },
-                "width": "25%"
+                "width": "10%"
             }
         ]
     });
