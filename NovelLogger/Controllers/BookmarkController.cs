@@ -88,7 +88,12 @@ namespace NovelLogger.Controllers
             };
 
             _db.Bookmarks.Add(bookmark);
-            _db.SaveChanges();
+            if (_saveChangesService.TrySave() == SaveResult.Duplicate)
+            {
+                novel = _db.Novels.Single(n => n.UserId == userId && n.TitleNormalized == normalizedTitle);
+                bookmark.Novel = novel;
+                _db.SaveChanges();
+            }
 
             return RedirectToAction(nameof(Index));
         }

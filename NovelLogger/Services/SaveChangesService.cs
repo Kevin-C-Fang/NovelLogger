@@ -19,7 +19,8 @@ namespace NovelLogger.Services
                 _db.SaveChanges();
                 return SaveResult.Success;
             }
-            catch (DbUpdateException ex) when (ex.InnerException is SqlException sqlEx && sqlEx.Number == 2601)
+            catch (DbUpdateException ex) when (ex.InnerException is SqlException sqlEx && 
+                (sqlEx.Number == 2601 || sqlEx.Number == 2627))
             {
                 return SaveResult.Duplicate;
             }
