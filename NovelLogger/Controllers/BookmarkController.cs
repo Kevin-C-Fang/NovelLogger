@@ -51,11 +51,11 @@ namespace NovelLogger.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             string normalizedTitle = StringUtilityMethods.NormalizeTitle(vm.NovelTitle);
 
-            Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Novel.TitleNormalized == normalizedTitle && !u.IsSaved).FirstOrDefault();
+            Bookmark? bookmarkFromDb = _db.Bookmarks.Where(u => u.UserId == userId && u.Novel.TitleNormalized == normalizedTitle && !u.IsSaved).FirstOrDefault();
 
-            if (bookmark != null)
+            if (bookmarkFromDb != null)
             {
-                _db.Bookmarks.Remove(bookmark);
+                _db.Bookmarks.Remove(bookmarkFromDb);
             }
 
             Novel? novel = _db.Novels.Where(u => u.UserId == userId && u.TitleNormalized == normalizedTitle).FirstOrDefault();
@@ -77,7 +77,7 @@ namespace NovelLogger.Controllers
                 novel.NovelStatus = vm.NovelStatus;
             }
 
-            bookmark = new Bookmark()
+            Bookmark bookmark = new Bookmark()
             {
                 UserId = userId,
                 Novel = novel,
@@ -88,11 +88,32 @@ namespace NovelLogger.Controllers
             };
 
             _db.Bookmarks.Add(bookmark);
-            if (_saveChangesService.TrySave() == SaveResult.Duplicate)
+
+            SaveResult result = _saveChangesService.TrySave();
+
+            if (result == SaveResult.NovelTitleNormDuplicate)
             {
-                novel = _db.Novels.Single(n => n.UserId == userId && n.TitleNormalized == normalizedTitle);
-                bookmark.Novel = novel;
-                _db.SaveChanges();
+                if (novel != null && _db.Entry(novel).State == EntityState.Added)
+                {
+                    _db.Entry(novel).State = EntityState.Detached;
+                }
+
+                Novel novelFromDb = _db.Novels.Single(n => n.UserId == userId && n.TitleNormalized == normalizedTitle);
+                bookmark.Novel = novelFromDb;
+
+                SaveResult retry = _saveChangesService.TrySave();
+                if (retry == SaveResult.BookmarkUrlDuplicate)
+                {
+                    ModelState.AddModelError(nameof(vm.Url), "A bookmark with this novel title and url already exists. If you just submitted this form, it may have been created already.");
+                    vm.NovelStatusList = NovelStatusStrings.StatusOptions;
+                    return View(vm);
+                }
+            }
+            else if(result == SaveResult.BookmarkUrlDuplicate)
+            {
+                ModelState.AddModelError(nameof(vm.Url), "A bookmark with this novel title and url already exists. If you just submitted this form, it may have been created already.");
+                vm.NovelStatusList = NovelStatusStrings.StatusOptions;
+                return View(vm);
             }
 
             return RedirectToAction(nameof(Index));
@@ -180,7 +201,14 @@ namespace NovelLogger.Controllers
                 bookmark.IsSaved = vm.IsSaved;
             }
 
-            _db.SaveChanges();
+            SaveResult result = _saveChangesService.TrySave();
+
+            if (result == SaveResult.BookmarkUrlDuplicate)
+            {
+                ModelState.AddModelError(nameof(vm.Url), "A bookmark with this novel and url already exists. If you just submitted this form, it may have been created already.");
+                vm.NovelStatusList = NovelStatusStrings.StatusOptions;
+                return View(vm);
+            }
 
             return RedirectToAction(nameof(Index));
         }

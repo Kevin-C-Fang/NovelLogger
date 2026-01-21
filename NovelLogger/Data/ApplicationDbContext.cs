@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using NovelLogger.Models;
+using NovelLogger.Utility;
 
 namespace NovelLogger.Data
 {
@@ -12,14 +13,15 @@ namespace NovelLogger.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
             builder.Entity<Novel>(e =>
             {
-                e.HasIndex(x => new { x.UserId, x.TitleNormalized }).IsUnique();
+                e.HasIndex(x => new { x.UserId, x.TitleNormalized }).IsUnique().HasDatabaseName(DbIndexStrings.NovelUniqueIndex);
             });
 
             builder.Entity<Bookmark>(e =>
             {
-                e.HasIndex(x => new { x.UserId, x.NovelId, x.DateAdded });
+                e.HasIndex(x => new { x.UserId, x.NovelId, x.Url }).IsUnique().HasDatabaseName(DbIndexStrings.BookmarkUniqueIndex);
             });
         }
     }

@@ -1,15 +1,19 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using NovelLogger.Data;
+using NovelLogger.Utility;
 
 namespace NovelLogger.Services
 {
     public class SaveChangesService : ISaveChangesService
     {
         private readonly ApplicationDbContext _db;
-        public SaveChangesService(ApplicationDbContext db)
+        private readonly ILogger<SaveChangesService> _logger;
+
+        public SaveChangesService(ApplicationDbContext db, ILogger<SaveChangesService> logger)
         {
             _db = db;
+            _logger = logger;
         }
 
         public SaveResult TrySave()
@@ -22,10 +26,24 @@ namespace NovelLogger.Services
             catch (DbUpdateException ex) when (ex.InnerException is SqlException sqlEx && 
                 (sqlEx.Number == 2601 || sqlEx.Number == 2627))
             {
-                return SaveResult.Duplicate;
+                var msg = sqlEx.Message;
+
+                if (msg.Contains(DbIndexStrings.NovelUniqueIndex)) 
+                { 
+                    return SaveResult.NovelTitleNormDuplicate;
+                }
+
+                if (msg.Contains(DbIndexStrings.BookmarkUniqueIndex))
+                {
+                    return SaveResult.BookmarkUrlDuplicate;
+                }
+
+                _logger.LogWarning(ex, sqlEx.Message);
+                throw;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, ex.Message);
                 throw;
             }
         }
@@ -34,6 +52,7 @@ namespace NovelLogger.Services
     public enum SaveResult
     {
         Success,
-        Duplicate,
+        NovelTitleNormDuplicate,
+        BookmarkUrlDuplicate,
     }
 }

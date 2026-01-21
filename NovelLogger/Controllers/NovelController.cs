@@ -48,6 +48,7 @@ namespace NovelLogger.Controllers
             }
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+
             Novel novel = new Novel()
             {
                 Title = vm.NovelTitle,
@@ -58,9 +59,9 @@ namespace NovelLogger.Controllers
 
             _db.Novels.Add(novel);
 
-            if (_saveChangesService.TrySave() == SaveResult.Duplicate)
+            if (_saveChangesService.TrySave() == SaveResult.NovelTitleNormDuplicate)
             {
-                ModelState.AddModelError(nameof(vm.NovelTitle), "This novel already exists.");
+                ModelState.AddModelError(nameof(vm.NovelTitle), "A novel with this title already exists. If you just submitted this form, it may have been created already.");
                 vm.NovelStatusList = NovelStatusStrings.StatusOptions;
                 return View(vm);
             }
@@ -111,7 +112,7 @@ namespace NovelLogger.Controllers
             novel.TitleNormalized = StringUtilityMethods.NormalizeTitle(vm.NovelTitle);
             novel.NovelStatus = vm.NovelStatus;
 
-            if (_saveChangesService.TrySave() == SaveResult.Duplicate)
+            if (_saveChangesService.TrySave() == SaveResult.NovelTitleNormDuplicate)
             {
                 ModelState.AddModelError(nameof(vm.NovelTitle), "This novel already exists.");
                 vm.NovelStatusList = NovelStatusStrings.StatusOptions;
