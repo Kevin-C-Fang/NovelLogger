@@ -17,20 +17,19 @@ namespace NovelLogger.Data.DbInitializer
 
         public void Initialize()
         {
+            var strategy = _db.Database.CreateExecutionStrategy();
+
             try
             {
-                if (_db.Database.GetPendingMigrations().Count() > 0)
+                strategy.Execute(() =>
                 {
                     _db.Database.Migrate();
-                }
+                });
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, ex.Message);
-                throw;
+                _logger.LogError(ex, "Database migration failed during startup.");
             }
-
-            return;
         }
     }
 }
