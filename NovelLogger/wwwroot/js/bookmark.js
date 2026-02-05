@@ -2,6 +2,7 @@
 
 $(document).ready(function () {
     loadDataTable();
+    applyColumnVisibility(dataTable);
 })
 
 function loadDataTable() {
@@ -9,18 +10,17 @@ function loadDataTable() {
         "ajax": { url: '/Bookmark/getall' },
         autoWidth: false,
         "columns": [
-            { data: 'novel.title', "width": "35%" },
+            { data: 'novel.title', "width": "20%" },
             {
                 data: 'url',
-                width: "25%",
+                width: "20%",
                 render: function (data) {
                     return `<a href="${data}" target="_blank">${data}</a>`
                 },
-                className: "td-truncate"
             },
             {
                 data: 'dateAdded',
-                width: "10%",
+                width: "15%",
                 render: {
                     _: 'display',  
                     sort: 'sort'   
@@ -42,7 +42,7 @@ function loadDataTable() {
                     </div>
                     `
                 },
-                "width": "10%"
+                "width": "25%"
             }
         ]
     });
@@ -70,3 +70,14 @@ function Delete(url) {
         }
     });
 }
+
+function applyColumnVisibility(dataTable) {
+    const isMobile = window.matchMedia('(max-width: 1000px)').matches;
+
+    dataTable.column(3).visible(!isMobile);
+    dataTable.column(4).visible(!isMobile);
+
+    dataTable.columns.adjust().draw();
+}
+
+window.addEventListener('resize', () => applyColumnVisibility(dataTable));

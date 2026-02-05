@@ -10,8 +10,8 @@ function loadDataTable() {
         autoWidth: false,
 
         "columns": [
-            { data: 'novelTitle', "width": "50%" },
-            { data: 'novelStatus', "width": "40%" },
+            { data: 'novelTitle', "width": "35%" },
+            { data: 'novelStatus', "width": "35%" },
             {
                 data: 'novelId',
                 "render": function (data) {
@@ -25,7 +25,7 @@ function loadDataTable() {
                     </div>
                     `
                 },
-                "width": "10%",
+                "width": "30%",
             }
         ]
     });
