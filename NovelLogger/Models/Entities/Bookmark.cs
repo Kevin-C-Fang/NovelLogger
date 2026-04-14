@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace NovelLogger.Models
+namespace NovelLogger.Models.Entities
 {
     public class Bookmark
     {

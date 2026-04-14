@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NovelLogger.Data;
-using NovelLogger.Models;
+using NovelLogger.Models.DTOs;
+using NovelLogger.Models.Entities;
+using NovelLogger.Models.ViewModels;
 using NovelLogger.Services;
 using NovelLogger.Utility;
 using System.Security.Claims;
@@ -43,22 +45,29 @@ namespace NovelLogger.Controllers
             if (!ModelState.IsValid)
             {
                 vm.NovelStatusList = NovelStatusStrings.StatusOptions;
-
                 return View(vm);
             }
+
+            // TODO: Convert VM to dto and pass into service to be saved to database.
+            var createNovelDto = new CreateNovelDto
+            {
+                NovelTitle = vm.NovelTitle,
+                NovelStatus = vm.NovelStatus
+            };
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
             Novel novel = new Novel()
             {
-                Title = vm.NovelTitle,
-                TitleNormalized = StringUtilityMethods.NormalizeTitle(vm.NovelTitle),
-                NovelStatus = vm.NovelStatus,
+                Title = createNovelDto.NovelTitle,
+                TitleNormalized = StringUtilityMethods.NormalizeTitle(createNovelDto.NovelTitle),
+                NovelStatus = createNovelDto.NovelStatus,
                 UserId = userId,
             };
 
             _db.Novels.Add(novel);
 
+            // TODO: Incorporate the save changes service into new service and return boolean signaling whether save went through.
             if (_saveChangesService.TrySave() == SaveResult.NovelTitleNormDuplicate)
             {
                 ModelState.AddModelError(nameof(vm.NovelTitle), "A novel with this title already exists. If you just submitted this form, it may have been created already.");
@@ -79,10 +88,17 @@ namespace NovelLogger.Controllers
                 return NotFound();
             }
 
-            NovelVM vm = new NovelVM()
+            // TODO: Grab entity from database, convert to dto, grab dto from service and convert to vm to be passed to view.
+            var editNovelDto = new EditNovelDto()
             {
                 NovelTitle = novel.Title,
-                NovelStatus = novel.NovelStatus,
+                NovelStatus = novel.NovelStatus
+            };
+
+            NovelVM vm = new NovelVM()
+            {
+                NovelTitle = editNovelDto.NovelTitle,
+                NovelStatus = editNovelDto.NovelStatus,
                 NovelStatusList = NovelStatusStrings.StatusOptions,
             };
 
@@ -96,9 +112,15 @@ namespace NovelLogger.Controllers
             if (!ModelState.IsValid)
             {
                 vm.NovelStatusList = NovelStatusStrings.StatusOptions;
-
                 return View(vm);
             }
+
+            // TODO: Convert VM to dto, pass to service, and edit in service and save to database. 
+            var editNovelDto = new EditNovelDto
+            {
+                NovelTitle = vm.NovelTitle,
+                NovelStatus = vm.NovelStatus
+            };
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             Novel? novel = _db.Novels.Where(u => u.UserId == userId && u.Id == vm.NovelId).FirstOrDefault();
@@ -112,6 +134,7 @@ namespace NovelLogger.Controllers
             novel.TitleNormalized = StringUtilityMethods.NormalizeTitle(vm.NovelTitle);
             novel.NovelStatus = vm.NovelStatus;
 
+            // TODO: Incorporate the save changes service into new service and return boolean signaling whether save went through.
             if (_saveChangesService.TrySave() == SaveResult.NovelTitleNormDuplicate)
             {
                 ModelState.AddModelError(nameof(vm.NovelTitle), "This novel already exists.");
@@ -126,6 +149,8 @@ namespace NovelLogger.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
+            // TODO: Grab data from database in service, convert to dto, return and convert again to NovelVM.
+            
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
             var novels = _db.Novels.Where(u => u.UserId == userId).Select(u => new
@@ -141,6 +166,8 @@ namespace NovelLogger.Controllers
         [HttpDelete]
         public IActionResult Delete(int? novelId)
         {
+            // TODO: When service is created, add pathway to delete by calling service method.
+
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             Novel? novel = _db.Novels.Where(u => u.UserId == userId && u.Id == novelId).FirstOrDefault();
 

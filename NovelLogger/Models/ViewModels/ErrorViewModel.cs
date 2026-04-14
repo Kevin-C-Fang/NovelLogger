@@ -1,4 +1,4 @@
-namespace NovelLogger.Models
+namespace NovelLogger.Models.ViewModels
 {
     public class ErrorViewModel
     {

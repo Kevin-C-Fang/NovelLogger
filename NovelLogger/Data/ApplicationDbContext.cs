@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using NovelLogger.Models;
+using NovelLogger.Models.Entities;
 using NovelLogger.Utility;
 
 namespace NovelLogger.Data

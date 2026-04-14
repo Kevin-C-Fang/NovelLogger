@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using NovelLogger.Models;
+using NovelLogger.Models.ViewModels;
 
 namespace NovelLogger.Controllers
 {

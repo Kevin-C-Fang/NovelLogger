@@ -4,7 +4,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NovelLogger.Data;
-using NovelLogger.Models;
+using NovelLogger.Models.DTOs;
+using NovelLogger.Models.Entities;
+using NovelLogger.Models.ViewModels;
 using NovelLogger.Services;
 using NovelLogger.Utility;
 using System.Security.Claims;
@@ -62,28 +64,45 @@ namespace NovelLogger.Controllers
 
             if (novel == null)
             {
+                // TODO: Incorporate DTO into service
+                var createNovelDto = new CreateNovelDto
+                {
+                    NovelTitle = vm.NovelTitle,
+                    NovelStatus = vm.NovelStatus
+                };
+
                 novel = new Novel()
                 {
                     UserId = userId,
-                    Title = vm.NovelTitle,
+                    Title = createNovelDto.NovelTitle,
                     TitleNormalized = normalizedTitle,
-                    NovelStatus = vm.NovelStatus,
+                    NovelStatus = createNovelDto.NovelStatus,
                 };
 
                 _db.Novels.Add(novel);
             }
             else
             {
+                // TODO: Figure out how to incorporate DTO into this weird change to novel status within bookmark.
                 novel.NovelStatus = vm.NovelStatus;
             }
+
+            // TODO: Convert VM to DTO and pass into service to create entity and add to database.
+            var createBookmarkDto = new CreateBookmarkDto()
+            {
+                Novel = novel,
+                Url = vm.Url,
+                Notes = vm.Notes,
+                IsSaved = vm.IsSaved
+            };
 
             Bookmark bookmark = new Bookmark()
             {
                 UserId = userId,
                 Novel = novel,
-                Url = vm.Url,
-                Notes = vm.Notes,
-                IsSaved = vm.IsSaved,
+                Url = createBookmarkDto.Url,
+                Notes = createBookmarkDto.Notes,
+                IsSaved = createBookmarkDto.IsSaved,
                 DateAdded = DateTime.UtcNow
             };
 
@@ -121,6 +140,8 @@ namespace NovelLogger.Controllers
 
         public IActionResult ViewBookmark(int bookmarkId)
         {
+            // TODO: Pass Id into service, it gets the entity, converts to dto, returned to controller and controller converts to VM.
+
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == bookmarkId).Include(b => b.Novel).FirstOrDefault();
 
@@ -142,6 +163,8 @@ namespace NovelLogger.Controllers
 
         public IActionResult Edit(int bookmarkId)
         {
+            // TODO: Pass Id into service, it gets the entity, converts to dto, returned to controller and controller converts to VM.
+
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == bookmarkId).Include(b => b.Novel).FirstOrDefault();
 
@@ -174,6 +197,8 @@ namespace NovelLogger.Controllers
 
                 return View(vm);
             }
+
+            // TODO: Create the DTO from VM, pass into service, and changes the entity from the database.
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
@@ -217,6 +242,8 @@ namespace NovelLogger.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
+            // TODO: Grab data from database in service, convert to dto, return and convert again to NovelVM.
+
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
             var bookmarks = _db.Bookmarks.Where(u => u.UserId == userId).Include(b => b.Novel).Select(u => new
@@ -247,6 +274,7 @@ namespace NovelLogger.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             string normalized = StringUtilityMethods.NormalizeTitle(text);
 
+            // TODO: Create DTO for novel title suggestions, get data from database, filter, and return as dto for controller to return into json.
             var novelTitles = _db.Novels.Where(u => u.UserId == userId && u.TitleNormalized.Contains(normalized))
                 .OrderBy(u=> u.TitleNormalized).Select(n => n.Title).Take(5).ToList();
 
@@ -256,6 +284,8 @@ namespace NovelLogger.Controllers
         [HttpDelete]
         public IActionResult Delete(int? bookmarkId)
         {
+            // TODO: When service is created, add pathway to delete by calling service method.
+
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == bookmarkId).FirstOrDefault();
 

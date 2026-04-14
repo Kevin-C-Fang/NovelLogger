@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.ComponentModel.DataAnnotations;
 
-namespace NovelLogger.Models
+namespace NovelLogger.Models.ViewModels
 {
     public class NovelVM
     {

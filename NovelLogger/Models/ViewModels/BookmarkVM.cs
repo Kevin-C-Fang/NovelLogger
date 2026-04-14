@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using NovelLogger.Utility;
 
-namespace NovelLogger.Models
+namespace NovelLogger.Models.ViewModels
 {
     public class BookmarkVM
     {
