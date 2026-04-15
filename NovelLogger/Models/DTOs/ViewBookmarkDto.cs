@@ -4,13 +4,14 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NovelLogger.Models.DTOs
 {
-    public class CreateBookmarkDto
+    public class ViewBookmarkDto
     {
+        public int BookmarkId { get; set; }
         public string NovelTitle { get; set; } = null!;
-        public string TitleNormalized { get; set; } = null!;
         public string NovelStatus { get; set; } = null!;
         public string Url { get; set; } = null!;
         public string? Notes { get; set; }
         public bool IsSaved { get; set; }
+        public DateTime DateAdded { get; set; } = DateTime.UtcNow;
     }
 }

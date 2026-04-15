@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using NovelLogger.Services;
+using NovelLogger.Services.Implementations;
 
 namespace NovelLogger.Data.DbInitializer
 {

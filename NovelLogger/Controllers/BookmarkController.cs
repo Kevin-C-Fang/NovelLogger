@@ -7,7 +7,8 @@ using NovelLogger.Data;
 using NovelLogger.Models.DTOs;
 using NovelLogger.Models.Entities;
 using NovelLogger.Models.ViewModels;
-using NovelLogger.Services;
+using NovelLogger.Services.Implementations;
+using NovelLogger.Services.Interfaces;
 using NovelLogger.Utility;
 using System.Security.Claims;
 
@@ -16,13 +17,13 @@ namespace NovelLogger.Controllers
     [Authorize]
     public class BookmarkController : Controller
     {
-        private readonly ApplicationDbContext _db;
-        private readonly ISaveChangesService _saveChangesService;
+        private readonly IBookmarkService _bookmarkService;
+        private readonly INovelService _novelService;
 
-        public BookmarkController(ApplicationDbContext db, ISaveChangesService saveChangesService)
+        public BookmarkController(IBookmarkService bookmarkService, INovelService novelService)
         {
-            _db = db;
-            _saveChangesService = saveChangesService;
+            _bookmarkService = bookmarkService;
+            _novelService = novelService;
         }
 
         public IActionResult Index()
@@ -50,87 +51,27 @@ namespace NovelLogger.Controllers
                 return View(vm);
             }
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            string normalizedTitle = StringUtilityMethods.NormalizeTitle(vm.NovelTitle);
-
-            Bookmark? bookmarkFromDb = _db.Bookmarks.Where(u => u.UserId == userId && u.Novel.TitleNormalized == normalizedTitle && !u.IsSaved).FirstOrDefault();
-
-            if (bookmarkFromDb != null)
-            {
-                _db.Bookmarks.Remove(bookmarkFromDb);
-            }
-
-            Novel? novel = _db.Novels.Where(u => u.UserId == userId && u.TitleNormalized == normalizedTitle).FirstOrDefault();
-
-            if (novel == null)
-            {
-                // TODO: Incorporate DTO into service
-                var createNovelDto = new CreateNovelDto
-                {
-                    NovelTitle = vm.NovelTitle,
-                    NovelStatus = vm.NovelStatus
-                };
-
-                novel = new Novel()
-                {
-                    UserId = userId,
-                    Title = createNovelDto.NovelTitle,
-                    TitleNormalized = normalizedTitle,
-                    NovelStatus = createNovelDto.NovelStatus,
-                };
-
-                _db.Novels.Add(novel);
-            }
-            else
-            {
-                // TODO: Figure out how to incorporate DTO into this weird change to novel status within bookmark.
-                novel.NovelStatus = vm.NovelStatus;
-            }
-
-            // TODO: Convert VM to DTO and pass into service to create entity and add to database.
             var createBookmarkDto = new CreateBookmarkDto()
             {
-                Novel = novel,
+                NovelTitle = vm.NovelTitle,
+                TitleNormalized = StringUtilityMethods.NormalizeTitle(vm.NovelTitle),
+                NovelStatus = vm.NovelStatus,
                 Url = vm.Url,
                 Notes = vm.Notes,
-                IsSaved = vm.IsSaved
+                IsSaved = vm.IsSaved,
             };
 
-            Bookmark bookmark = new Bookmark()
+            ServiceResult result = _bookmarkService.CreateBookmark(createBookmarkDto);
+
+            if (result == ServiceResult.NovelTitleNormDuplicate)
             {
-                UserId = userId,
-                Novel = novel,
-                Url = createBookmarkDto.Url,
-                Notes = createBookmarkDto.Notes,
-                IsSaved = createBookmarkDto.IsSaved,
-                DateAdded = DateTime.UtcNow
-            };
-
-            _db.Bookmarks.Add(bookmark);
-
-            SaveResult result = _saveChangesService.TrySave();
-
-            if (result == SaveResult.NovelTitleNormDuplicate)
-            {
-                if (novel != null && _db.Entry(novel).State == EntityState.Added)
-                {
-                    _db.Entry(novel).State = EntityState.Detached;
-                }
-
-                Novel novelFromDb = _db.Novels.Single(n => n.UserId == userId && n.TitleNormalized == normalizedTitle);
-                bookmark.Novel = novelFromDb;
-
-                SaveResult retry = _saveChangesService.TrySave();
-                if (retry == SaveResult.BookmarkUrlDuplicate)
-                {
-                    ModelState.AddModelError(nameof(vm.Url), "A bookmark with this novel title and url already exists. If you just submitted this form, it may have been created already.");
-                    vm.NovelStatusList = NovelStatusStrings.StatusOptions;
-                    return View(vm);
-                }
+                ModelState.AddModelError(nameof(vm.NovelTitle), "A novel with this title already exists.");
+                vm.NovelStatusList = NovelStatusStrings.StatusOptions;
+                return View(vm);
             }
-            else if(result == SaveResult.BookmarkUrlDuplicate)
+            else if(result == ServiceResult.BookmarkUrlDuplicate)
             {
-                ModelState.AddModelError(nameof(vm.Url), "A bookmark with this novel title and url already exists. If you just submitted this form, it may have been created already.");
+                ModelState.AddModelError(nameof(vm.Url), "A bookmark with this novel title and url already exists.");
                 vm.NovelStatusList = NovelStatusStrings.StatusOptions;
                 return View(vm);
             }
@@ -140,22 +81,19 @@ namespace NovelLogger.Controllers
 
         public IActionResult ViewBookmark(int bookmarkId)
         {
-            // TODO: Pass Id into service, it gets the entity, converts to dto, returned to controller and controller converts to VM.
+            var viewBookmarkDto = _bookmarkService.GetViewBookmarkDto(bookmarkId);
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == bookmarkId).Include(b => b.Novel).FirstOrDefault();
-
-            if (bookmark == null) {
+            if (viewBookmarkDto == null) {
                 return NotFound();
             }
 
             BookmarkVM vm = new BookmarkVM()
             {
-                NovelTitle = bookmark.Novel.Title,
-                Url = bookmark.Url,
-                Notes = bookmark.Notes,
-                IsSaved = bookmark.IsSaved,
-                NovelStatus = bookmark.Novel.NovelStatus,
+                NovelTitle = viewBookmarkDto.NovelTitle,
+                Url = viewBookmarkDto.Url,
+                Notes = viewBookmarkDto.Notes,
+                IsSaved = viewBookmarkDto.IsSaved,
+                NovelStatus = viewBookmarkDto.NovelStatus,
             };
 
             return View(vm);
@@ -163,25 +101,21 @@ namespace NovelLogger.Controllers
 
         public IActionResult Edit(int bookmarkId)
         {
-            // TODO: Pass Id into service, it gets the entity, converts to dto, returned to controller and controller converts to VM.
+            var editBookmarkDto = _bookmarkService.GetEditBookmarkDto(bookmarkId);
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == bookmarkId).Include(b => b.Novel).FirstOrDefault();
-
-            if (bookmark == null)
+            if (editBookmarkDto == null)
             {
                 return NotFound();
             }
 
             BookmarkVM vm = new BookmarkVM()
             {
-                NovelTitle = bookmark.Novel.Title,
-                Url = bookmark.Url,
-                Notes = bookmark.Notes,
-                IsSaved = bookmark.IsSaved,
-                BookmarkId = bookmark.Id,
-                NovelStatus = bookmark.Novel.NovelStatus,
-                NovelStatusList = NovelStatusStrings.StatusOptions,
+                NovelTitle = editBookmarkDto.NovelTitle,
+                BookmarkId = editBookmarkDto.BookmarkId,
+                Url = editBookmarkDto.Url,
+                Notes = editBookmarkDto.Notes,
+                IsSaved = editBookmarkDto.IsSaved,
+                NovelStatus = editBookmarkDto.NovelStatus,
             };
 
             return View(vm);
@@ -198,39 +132,20 @@ namespace NovelLogger.Controllers
                 return View(vm);
             }
 
-            // TODO: Create the DTO from VM, pass into service, and changes the entity from the database.
-
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-
-            Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == vm.BookmarkId).Include(b => b.Novel).FirstOrDefault();
-
-            if (bookmark == null)
+            var editBookmarkDto = new EditBookmarkDto()
             {
-                return NotFound();
-            }
+                BookmarkId = vm.BookmarkId,
+                NovelStatus = vm.NovelStatus,
+                Url = vm.Url,
+                Notes = vm.Notes,
+                IsSaved = vm.IsSaved,
+            };
 
-            Novel? novel = _db.Novels.Where(u => u.UserId == userId && u.Id == bookmark.NovelId).FirstOrDefault();
+            ServiceResult result = _bookmarkService.EditBookmark(editBookmarkDto);
 
-            if (novel == null)
+            if (result == ServiceResult.BookmarkUrlDuplicate)
             {
-                return NotFound();
-            }
-
-            novel.NovelStatus = vm.NovelStatus;
-
-            bookmark.Notes = vm.Notes;
-            bookmark.Url = vm.Url;
-
-            if (!bookmark.IsSaved)
-            {
-                bookmark.IsSaved = vm.IsSaved;
-            }
-
-            SaveResult result = _saveChangesService.TrySave();
-
-            if (result == SaveResult.BookmarkUrlDuplicate)
-            {
-                ModelState.AddModelError(nameof(vm.Url), "A bookmark with this novel and url already exists. If you just submitted this form, it may have been created already.");
+                ModelState.AddModelError(nameof(vm.Url), "A bookmark with this novel and url already exists.");
                 vm.NovelStatusList = NovelStatusStrings.StatusOptions;
                 return View(vm);
             }
@@ -242,60 +157,45 @@ namespace NovelLogger.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            // TODO: Grab data from database in service, convert to dto, return and convert again to NovelVM.
-
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-
-            var bookmarks = _db.Bookmarks.Where(u => u.UserId == userId).Include(b => b.Novel).Select(u => new
+            var bookmarkDtos = _bookmarkService.GetAllViewBookmarkDto();
+            var bookmarks = bookmarkDtos.Select(u => new
+            {
+                novel = new { title = u.NovelTitle },
+                url = u.Url,
+                dateAdded = new
                 {
-                    novel = new { title = u.Novel.Title },
-                    url = u.Url,
-                    dateAdded = new
-                    {
-                        display = u.DateAdded.ToString("MM/dd/yyyy hh:mm:ss tt"),
-                        sort = u.DateAdded
-                    },
-                    hasNotes = !string.IsNullOrEmpty(u.Notes) ? "✓" : "✗",
-                    isSaved = u.IsSaved ? "✓" : "✗",
-                    bookmarkId = u.Id,
-                }).ToList();
+                    display = u.DateAdded.ToString("MM/dd/yyyy hh:mm:ss tt"),
+                    sort = u.DateAdded
+                },
+                hasNotes = !string.IsNullOrEmpty(u.Notes) ? "✓" : "✗",
+                isSaved = u.IsSaved ? "✓" : "✗",
+                bookmarkId = u.BookmarkId,
+            }).ToList();
 
             return Json(new { data = bookmarks });
         }
 
         [HttpGet]
-        public IActionResult NovelTitleSuggestions(string text)
+        public IActionResult NovelTitleSuggestions(string title)
         {
-            if (string.IsNullOrEmpty(text))
+            if (string.IsNullOrEmpty(title))
             {
                 return Json(null);
             }
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            string normalized = StringUtilityMethods.NormalizeTitle(text);
-
-            // TODO: Create DTO for novel title suggestions, get data from database, filter, and return as dto for controller to return into json.
-            var novelTitles = _db.Novels.Where(u => u.UserId == userId && u.TitleNormalized.Contains(normalized))
-                .OrderBy(u=> u.TitleNormalized).Select(n => n.Title).Take(5).ToList();
-
-            return Json(novelTitles);
+            var suggestions = _novelService.GetNovelTitleSuggestions(title);
+            return Json(suggestions);
         }
 
         [HttpDelete]
-        public IActionResult Delete(int? bookmarkId)
+        public IActionResult Delete(int bookmarkId)
         {
-            // TODO: When service is created, add pathway to delete by calling service method.
+            ServiceResult result = _bookmarkService.DeleteBookmark(bookmarkId);
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == bookmarkId).FirstOrDefault();
-
-            if (bookmark == null)
+            if (result == ServiceResult.NotFound)
             {
                 return Json(new { success = false, message = "Error while deleting" });
             }
-
-            _db.Bookmarks.Remove(bookmark);
-            _db.SaveChanges();
 
             return Json(new { success = true, message = "Delete Successful" });
         }

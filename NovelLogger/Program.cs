@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using NovelLogger.Data;
 using NovelLogger.Data.DbInitializer;
-using NovelLogger.Services;
+using NovelLogger.Services.Implementations;
+using NovelLogger.Services.Interfaces;
 using NovelLogger.Utility;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,9 +30,12 @@ builder.Services.AddAuthentication().AddGoogle(googleOptions =>
 });
 
 builder.Services.AddRazorPages();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 builder.Services.AddScoped<ISaveChangesService, SaveChangesService>();
+builder.Services.AddScoped<INovelService, NovelService>();
+builder.Services.AddScoped<IBookmarkService, BookmarkService>();
 
 var app = builder.Build();
 
