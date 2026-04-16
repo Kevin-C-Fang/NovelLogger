@@ -116,6 +116,7 @@ namespace NovelLogger.Controllers
                 Notes = editBookmarkDto.Notes,
                 IsSaved = editBookmarkDto.IsSaved,
                 NovelStatus = editBookmarkDto.NovelStatus,
+                NovelStatusList = NovelStatusStrings.StatusOptions,
             };
 
             return View(vm);

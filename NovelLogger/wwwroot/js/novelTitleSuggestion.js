@@ -15,7 +15,7 @@ input.addEventListener("input", async () => {
     }
     lastController = new AbortController();
 
-    const result = await fetch(`/Bookmark/NovelTitleSuggestions?text=${encodeURIComponent(text)}`,
+    const result = await fetch(`/Bookmark/NovelTitleSuggestions?title=${encodeURIComponent(text)}`,
         { signal: lastController.signal }).catch(() => null);
 
     if (!result || !result.ok){
