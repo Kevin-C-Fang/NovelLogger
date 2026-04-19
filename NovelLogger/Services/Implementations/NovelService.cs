@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using NovelLogger.Data;
+using NovelLogger.Data.Repositories;
+using NovelLogger.Data.Repositories.IRepositories;
 using NovelLogger.Models.DTOs;
 using NovelLogger.Models.Entities;
 using NovelLogger.Models.ViewModels;
@@ -11,15 +13,13 @@ namespace NovelLogger.Services.Implementations
 {
     public class NovelService: INovelService
     {
-        private readonly ApplicationDbContext _db;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ISaveChangesService _saveChangesService;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public NovelService(ApplicationDbContext db, IHttpContextAccessor httpContextAccessor, ISaveChangesService saveChangesService)
+        public NovelService(IHttpContextAccessor httpContextAccessor, IUnitOfWork unitOfWork)
         {
-            _db = db;
             _httpContextAccessor = httpContextAccessor;
-            _saveChangesService = saveChangesService;
+            _unitOfWork = unitOfWork;
         }
 
         public ServiceResult CreateNovel(CreateNovelDto dto)
@@ -34,29 +34,15 @@ namespace NovelLogger.Services.Implementations
                 UserId = userId,
             };
 
-            _db.Novels.Add(novel);
+            _unitOfWork.Novel.Add(novel);
 
-            // TODO: Incorporate the save changes service into new service and return boolean signaling whether save went through.
-            return _saveChangesService.TrySave();
-        }
-
-        public EditNovelDto? GetEditNovelDto(int novelId)
-        {
-            var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            Novel? novel = _db.Novels.Where(u => u.UserId == userId && u.Id == novelId).FirstOrDefault();
-
-            if (novel == null)
-            {
-                return null;
-            }
-
-            return MapToEditNovelDto(novel);
+            return _unitOfWork.TrySave();
         }
 
         public ViewNovelDto? GetViewNovelDto(string titleNormalized)
         {
             var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            Novel? novel = _db.Novels.Where(u => u.UserId == userId && u.TitleNormalized == titleNormalized).FirstOrDefault();
+            Novel? novel = _unitOfWork.Novel.GetFirstOrDefault(u => u.UserId == userId && u.TitleNormalized == titleNormalized);
 
             if (novel == null)
             {
@@ -66,10 +52,23 @@ namespace NovelLogger.Services.Implementations
             return MapToViewNovelDto(novel);
         }
 
+        public EditNovelDto? GetEditNovelDto(int novelId)
+        {
+            var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+            Novel? novel = _unitOfWork.Novel.GetFirstOrDefault(u => u.UserId == userId && u.Id == novelId);
+
+            if (novel == null)
+            {
+                return null;
+            }
+
+            return MapToEditNovelDto(novel);
+        }
+
         public ServiceResult EditNovel(EditNovelDto dto)
         {
             var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            Novel? novel = _db.Novels.Where(u => u.UserId == userId && u.Id == dto.NovelId).FirstOrDefault();
+            Novel? novel = _unitOfWork.Novel.GetFirstOrDefault(u => u.UserId == userId && u.Id == dto.NovelId, null, true);
 
             if (novel == null)
             {
@@ -80,15 +79,14 @@ namespace NovelLogger.Services.Implementations
             novel.TitleNormalized = StringUtilityMethods.NormalizeTitle(dto.NovelTitle);
             novel.NovelStatus = dto.NovelStatus;
 
-            // TODO: Incorporate the save changes service into new service and return boolean signaling whether save went through.
-            return _saveChangesService.TrySave();
+            return _unitOfWork.TrySave();
         }
 
         public List<ViewNovelDto> GetAllViewNovelDto()
         {
             var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
-            var novels = _db.Novels.Where(u => u.UserId == userId).Select(u => new ViewNovelDto
+            var novels = _unitOfWork.Novel.GetAll(u => u.UserId == userId).Select(u => new ViewNovelDto
             {
                 NovelTitle = u.Title,
                 NovelStatus = u.NovelStatus,
@@ -101,22 +99,22 @@ namespace NovelLogger.Services.Implementations
         public ServiceResult DeleteNovel(int novelId)
         {
             var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            Novel? novel = _db.Novels.Where(u => u.UserId == userId && u.Id == novelId).FirstOrDefault();
+            Novel? novel = _unitOfWork.Novel.GetFirstOrDefault(u => u.UserId == userId && u.Id == novelId);
 
             if(novel == null)
             {
                 return ServiceResult.NotFound;
             }
 
-            _db.Novels.Remove(novel);
-            return _saveChangesService.TrySave();
+            _unitOfWork.Novel.Remove(novel);
+
+            return _unitOfWork.TrySave();
         }
 
         public List<string> GetNovelTitleSuggestions(string title)
         {
             var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            var suggestions = _db.Novels.Where(u => u.UserId == userId && u.TitleNormalized.Contains(StringUtilityMethods.NormalizeTitle(title)))
-                .OrderBy(u => u.TitleNormalized).Select(n => n.Title).Take(5).ToList();
+            var suggestions = _unitOfWork.Novel.GetNovelTitleSuggestions(u => u.UserId == userId && u.TitleNormalized.Contains(StringUtilityMethods.NormalizeTitle(title)));
 
             return suggestions;
         }

@@ -1,5 +1,5 @@
-﻿using NovelLogger.Models.DTOs;
-using NovelLogger.Services.Implementations;
+﻿using NovelLogger.Data.Repositories;
+using NovelLogger.Models.DTOs;
 
 namespace NovelLogger.Services.Interfaces
 {

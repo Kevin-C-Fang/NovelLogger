@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NovelLogger.Data;
+using NovelLogger.Data.Repositories;
 using NovelLogger.Models.DTOs;
 using NovelLogger.Models.Entities;
 using NovelLogger.Models.ViewModels;

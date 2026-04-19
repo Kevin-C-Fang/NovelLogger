@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using NovelLogger.Data;
 using NovelLogger.Data.DbInitializer;
+using NovelLogger.Data.Repositories;
+using NovelLogger.Data.Repositories.IRepositories;
 using NovelLogger.Services.Implementations;
 using NovelLogger.Services.Interfaces;
 using NovelLogger.Utility;
@@ -33,9 +35,9 @@ builder.Services.AddRazorPages();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
-builder.Services.AddScoped<ISaveChangesService, SaveChangesService>();
 builder.Services.AddScoped<INovelService, NovelService>();
 builder.Services.AddScoped<IBookmarkService, BookmarkService>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 var app = builder.Build();
 

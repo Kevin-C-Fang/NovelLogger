@@ -1,6 +1,8 @@
 ﻿using Humanizer;
 using Microsoft.EntityFrameworkCore;
 using NovelLogger.Data;
+using NovelLogger.Data.Repositories;
+using NovelLogger.Data.Repositories.IRepositories;
 using NovelLogger.Models.DTOs;
 using NovelLogger.Models.Entities;
 using NovelLogger.Models.ViewModels;
@@ -12,17 +14,15 @@ namespace NovelLogger.Services.Implementations
 {
     public class BookmarkService : IBookmarkService
     {
-        private readonly ApplicationDbContext _db;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly INovelService _novelService;
-        private readonly ISaveChangesService _saveChangesService;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public BookmarkService(ApplicationDbContext db, IHttpContextAccessor httpContextAccessor, INovelService novelService, ISaveChangesService saveChangesService)
+        public BookmarkService(IHttpContextAccessor httpContextAccessor, INovelService novelService, IUnitOfWork unitOfWork)
         {
-            _db = db;
             _httpContextAccessor = httpContextAccessor;
             _novelService = novelService;
-            _saveChangesService = saveChangesService;
+            _unitOfWork = unitOfWork;
         }
 
         public ServiceResult CreateBookmark(CreateBookmarkDto dto)
@@ -37,7 +37,7 @@ namespace NovelLogger.Services.Implementations
             var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             RemoveLatestUnsavedBookmark(userId, dto.TitleNormalized);
 
-            Novel? novel = _db.Novels.Where(u => u.UserId == userId && u.TitleNormalized == dto.TitleNormalized).FirstOrDefault();
+            Novel? novel = _unitOfWork.Novel.GetFirstOrDefault(u => u.UserId == userId && u.TitleNormalized == dto.TitleNormalized);
 
             Bookmark bookmark = new Bookmark()
             {
@@ -49,16 +49,15 @@ namespace NovelLogger.Services.Implementations
                 DateAdded = DateTime.UtcNow
             };
 
-            _db.Bookmarks.Add(bookmark);
+            _unitOfWork.Bookmark.Add(bookmark);
 
-            // TODO: Incorporate the save changes service into new service and return boolean signaling whether save went through.
-            return _saveChangesService.TrySave();
+            return _unitOfWork.TrySave();
         }
 
         public ViewBookmarkDto? GetViewBookmarkDto(int bookmarkId)
         {
             var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == bookmarkId).Include(b => b.Novel).FirstOrDefault();
+            Bookmark? bookmark = _unitOfWork.Bookmark.GetFirstOrDefault(u => u.UserId == userId && u.Id == bookmarkId, includeProperties: "Novel");
 
             if (bookmark == null)
             {
@@ -71,7 +70,7 @@ namespace NovelLogger.Services.Implementations
         public EditBookmarkDto? GetEditBookmarkDto(int bookmarkId)
         {
             var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == bookmarkId).Include(b => b.Novel).FirstOrDefault();
+            Bookmark? bookmark = _unitOfWork.Bookmark.GetFirstOrDefault(u => u.UserId == userId && u.Id == bookmarkId, includeProperties: "Novel");
 
             if (bookmark == null)
             {
@@ -84,7 +83,7 @@ namespace NovelLogger.Services.Implementations
         public ServiceResult EditBookmark(EditBookmarkDto dto)
         {
             var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == dto.BookmarkId).Include(b => b.Novel).FirstOrDefault();
+            Bookmark? bookmark = _unitOfWork.Bookmark.GetFirstOrDefault(u => u.UserId == userId && u.Id == dto.BookmarkId, includeProperties: "Novel", true);
 
             if (bookmark == null)
             {
@@ -101,14 +100,14 @@ namespace NovelLogger.Services.Implementations
                 bookmark.IsSaved = dto.IsSaved;
             }
 
-            return _saveChangesService.TrySave();
+            return _unitOfWork.TrySave();
         }
 
         public List<ViewBookmarkDto> GetAllViewBookmarkDto()
         {
             var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
-            var bookmarks = _db.Bookmarks.Where(u => u.UserId == userId).Include(b => b.Novel).Select(u => new ViewBookmarkDto
+            var bookmarks = _unitOfWork.Bookmark.GetAll(u => u.UserId == userId, includeProperties: "Novel").Select(u => new ViewBookmarkDto
             {
                 NovelTitle = u.Novel.Title,
                 NovelStatus = u.Novel.NovelStatus,
@@ -125,25 +124,25 @@ namespace NovelLogger.Services.Implementations
         public ServiceResult DeleteBookmark(int bookmarkId)
         {
             var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            Bookmark? bookmark = _db.Bookmarks.Where(u => u.UserId == userId && u.Id == bookmarkId).FirstOrDefault();
+            Bookmark? bookmark = _unitOfWork.Bookmark.GetFirstOrDefault(u => u.UserId == userId && u.Id == bookmarkId);
 
             if (bookmark == null)
             {
                 return ServiceResult.NotFound;
             }
 
-            _db.Bookmarks.Remove(bookmark);
-            return _saveChangesService.TrySave();
+            _unitOfWork.Bookmark.Remove(bookmark);
+            return _unitOfWork.TrySave();
         }
 
         private void RemoveLatestUnsavedBookmark(string? userId, string titleNormlized)
         {
-            Bookmark? bookmarkFromDb = _db.Bookmarks.Where(u => u.UserId == userId &&
-                u.Novel.TitleNormalized == titleNormlized && !u.IsSaved).FirstOrDefault();
+            Bookmark bookmarkFromDb = _unitOfWork.Bookmark.GetFirstOrDefault(u => u.UserId == userId &&
+                u.Novel.TitleNormalized == titleNormlized && !u.IsSaved);
 
             if (bookmarkFromDb != null)
             {
-                _db.Bookmarks.Remove(bookmarkFromDb);
+                _unitOfWork.Bookmark.Remove(bookmarkFromDb);
             }
         }
 

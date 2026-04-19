@@ -7,9 +7,9 @@ namespace NovelLogger.Data.DbInitializer
     public class DbInitializer : IDbInitializer
     {
         private readonly ApplicationDbContext _db;
-        private readonly ILogger<SaveChangesService> _logger;
+        private readonly ILogger<DbInitializer> _logger;
 
-        public DbInitializer(ApplicationDbContext db, ILogger<SaveChangesService> logger)
+        public DbInitializer(ApplicationDbContext db, ILogger<DbInitializer> logger)
         {
             _db = db;
             _logger = logger;
