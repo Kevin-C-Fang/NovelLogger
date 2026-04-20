@@ -28,7 +28,7 @@ namespace NovelLogger.Data.DbInitializer
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Database migration failed during startup.");
+                _logger.LogError(ex, "Database migration failed during startup at DbInitializer.Initialize().");
             }
         }
     }

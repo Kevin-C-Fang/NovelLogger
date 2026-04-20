@@ -33,24 +33,26 @@ namespace NovelLogger.Data.Repositories
                 (sqlEx.Number == 2601 || sqlEx.Number == 2627))
             {
                 var msg = sqlEx.Message;
-
+                
                 if (msg.Contains(DbIndexStrings.NovelUniqueIndex))
                 {
+                    _logger.LogWarning(sqlEx, "Database save failed due to duplicate title. Index:{Index}, Number: {SqlErrorNumber}", DbIndexStrings.NovelUniqueIndex, sqlEx.Number);
                     return ServiceResult.NovelTitleNormDuplicate;
                 }
 
                 if (msg.Contains(DbIndexStrings.BookmarkUniqueIndex))
                 {
+                    _logger.LogWarning(sqlEx, "Database save failed due to bookmarks of a novel having duplicate URLs. Index:{Index}, Number: {SqlErrorNumber}", DbIndexStrings.BookmarkUniqueIndex, sqlEx.Number);
                     return ServiceResult.BookmarkUrlDuplicate;
                 }
 
-                _logger.LogWarning(ex, sqlEx.Message);
-                throw;
+                _logger.LogWarning(sqlEx, "Database save failed due to unaccounted for exception. Number: {SqlErrorNumber}", sqlEx.Number);
+                return ServiceResult.Failed;
             }
-            catch (Exception ex)
+            catch(Exception ex)
             {
-                _logger.LogWarning(ex, ex.Message);
-                throw;
+                _logger.LogWarning(ex, "Database save failed due to unknown reason.");
+                return ServiceResult.Failed;
             }
         }
     }
@@ -61,5 +63,6 @@ namespace NovelLogger.Data.Repositories
         NotFound,
         NovelTitleNormDuplicate,
         BookmarkUrlDuplicate,
+        Failed,
     }
 }
