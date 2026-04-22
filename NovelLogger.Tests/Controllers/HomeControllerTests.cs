@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using NovelLogger.Controllers;
 using NovelLogger.Models.ViewModels;
+using NovelLogger.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,19 +19,25 @@ namespace NovelLogger.Tests.Controllers
 {
     public class HomeControllerTests
     {
-        [Fact]
-        public void Index_ReturnsRedirectToBookmark_WhenUserIsAuthenticated()
-        {
-            var loggerMock = new Mock<ILogger<HomeController>>();
-            var controller = new HomeController(loggerMock.Object);
+        private readonly Mock<ILogger<HomeController>> _loggerMock;
+        private readonly HomeController _controller;
 
+        public HomeControllerTests()
+        {
+            _loggerMock = new Mock<ILogger<HomeController>>();
+            _controller = new HomeController(_loggerMock.Object);
+        }
+
+        [Fact]
+        public void Index_Get_UserIsAuthenticated_ReturnsRedirectToBookmarkIndexView()
+        {
             var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
                 {
                     new Claim(ClaimTypes.Name, "test")
                 },
                 authenticationType: "TestAuth"));
 
-            controller.ControllerContext = new ControllerContext
+            _controller.ControllerContext = new ControllerContext
             {
                 HttpContext = new DefaultHttpContext
                 {
@@ -38,20 +45,18 @@ namespace NovelLogger.Tests.Controllers
                 }
             };
 
-            var result = controller.Index();
+            var result = _controller.Index();
             var redirect = Assert.IsType<RedirectToActionResult>(result);
             Assert.Equal("Index", redirect.ActionName);
             Assert.Equal("Bookmark", redirect.ControllerName);
         }
 
         [Fact]
-        public void Index_ReturnsView_WhenUserIsNotAuthenticated()
+        public void Index_Get_UserIsNotAuthenticated_ReturnsView()
         {
-            var loggerMock = new Mock<ILogger<HomeController>>();
-            var controller = new HomeController(loggerMock.Object);
             var user = new ClaimsPrincipal(new ClaimsIdentity());
 
-            controller.ControllerContext = new ControllerContext
+            _controller.ControllerContext = new ControllerContext
             {
                 HttpContext = new DefaultHttpContext
                 {
@@ -59,25 +64,20 @@ namespace NovelLogger.Tests.Controllers
                 }
             };
 
-            var result = controller.Index();
+            var result = _controller.Index();
             Assert.IsType<ViewResult>(result);
         }
 
         [Fact]
-        public void Privacy_ReturnsView_WhenRoutedTo()
+        public void Privacy_Get_ReturnsView()
         {
-            var loggerMock = new Mock<ILogger<HomeController>>();
-            var controller = new HomeController(loggerMock.Object);
-
-            var result = controller.Index();
+            var result = _controller.Index();
             Assert.IsType<ViewResult>(result);
         }
 
         [Fact]
-        public void Error_WhenExceptionFeatureExists_LogsErrorAndReturnsViewModel()
+        public void Error_Get_WhenExceptionFeatureExists_LogsErrorAndReturnsViewModel()
         {
-            var loggerMock = new Mock<ILogger<HomeController>>();
-            var controller = new HomeController(loggerMock.Object);
             var exception = new Exception();
             var exceptionFeature = new ExceptionHandlerFeature
             {
@@ -89,18 +89,18 @@ namespace NovelLogger.Tests.Controllers
             httpContext.TraceIdentifier = "TestTrace-123";
             httpContext.Features.Set<IExceptionHandlerPathFeature>(exceptionFeature);
 
-            controller.ControllerContext = new ControllerContext
+            _controller.ControllerContext = new ControllerContext
             {
                 HttpContext = httpContext
             };
 
-            var result = controller.Error();
+            var result = _controller.Error();
 
             var viewResult = Assert.IsType<ViewResult>(result);
             var model = Assert.IsType<ErrorViewModel>(viewResult.Model);
             Assert.Equal(httpContext.TraceIdentifier, model.RequestId);
 
-            loggerMock.Verify(
+            _loggerMock.Verify(
                 x => x.Log(
                     LogLevel.Error,
                     It.IsAny<EventId>(),
@@ -112,25 +112,23 @@ namespace NovelLogger.Tests.Controllers
         }
 
         [Fact]
-        public void Error_WhenExceptionFeatureMissing_ReturnsViewModelAndDoesNotLog()
+        public void Error_Get_WhenExceptionFeatureMissing_ReturnsViewModelAndDoesNotLog()
         {
-            var loggerMock = new Mock<ILogger<HomeController>>();
-            var controller = new HomeController(loggerMock.Object);
             var httpContext = new DefaultHttpContext();
             httpContext.TraceIdentifier = "TestTrace-123";
 
-            controller.ControllerContext = new ControllerContext
+            _controller.ControllerContext = new ControllerContext
             {
                 HttpContext = httpContext
             };
 
-            var result = controller.Error();
+            var result = _controller.Error();
 
             var viewResult = Assert.IsType<ViewResult>(result);
             var model = Assert.IsType<ErrorViewModel>(viewResult.Model);
             Assert.Equal(httpContext.TraceIdentifier, model.RequestId);
 
-            loggerMock.Verify(
+            _loggerMock.Verify(
                 x => x.Log(
                     LogLevel.Error,
                     It.IsAny<EventId>(),
