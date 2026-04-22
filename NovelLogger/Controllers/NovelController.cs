@@ -110,7 +110,7 @@ namespace NovelLogger.Controllers
             }
             else if (result == ServiceResult.NovelTitleNormDuplicate)
             {
-                ModelState.AddModelError(nameof(vm.NovelTitle), "This novel already exists.");
+                ModelState.AddModelError(nameof(vm.NovelTitle), "A novel with this title already exists.");
                 vm.NovelStatusList = NovelStatusStrings.StatusOptions;
                 return View(vm);
             }
