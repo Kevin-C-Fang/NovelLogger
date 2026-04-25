@@ -213,7 +213,7 @@ namespace NovelLogger.Tests.Controllers
         }
 
         [Fact]
-        public void Edit_Post_ValidNovelAndSuccessfulCreation_ReturnsRedirectToIndex()
+        public void Edit_Post_ValidNovelAndSuccessfulEdit_ReturnsRedirectToIndex()
         {
             var vm = new NovelVM
             {

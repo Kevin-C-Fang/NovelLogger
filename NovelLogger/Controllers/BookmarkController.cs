@@ -72,7 +72,7 @@ namespace NovelLogger.Controllers
             }
             else if(result == ServiceResult.BookmarkUrlDuplicate)
             {
-                ModelState.AddModelError(nameof(vm.Url), "A bookmark with this novel title and url already exists.");
+                ModelState.AddModelError(nameof(vm.Url), "A bookmark with this novel title and URL already exists.");
                 vm.NovelStatusList = NovelStatusStrings.StatusOptions;
                 return View(vm);
             }
@@ -178,7 +178,7 @@ namespace NovelLogger.Controllers
         }
 
         [HttpGet]
-        public IActionResult NovelTitleSuggestions(string title)
+        public IActionResult NovelTitleSuggestions(string? title)
         {
             if (string.IsNullOrEmpty(title))
             {
