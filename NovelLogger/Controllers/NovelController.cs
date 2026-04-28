@@ -79,6 +79,7 @@ namespace NovelLogger.Controllers
             {
                 NovelTitle = editNovelDto.NovelTitle,
                 NovelStatus = editNovelDto.NovelStatus,
+                NovelId = editNovelDto.NovelId,
                 NovelStatusList = NovelStatusStrings.StatusOptions,
             };
 

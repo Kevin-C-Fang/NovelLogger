@@ -124,7 +124,8 @@ namespace NovelLogger.Services.Implementations
             return new EditNovelDto()
             {
                 NovelTitle = novel.Title,
-                NovelStatus = novel.NovelStatus
+                NovelStatus = novel.NovelStatus,
+                NovelId = novel.Id,
             };
         }
 
