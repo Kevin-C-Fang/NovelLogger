@@ -187,6 +187,7 @@ namespace NovelLogger.Services.Implementations
             return new EditBookmarkDto()
             {
                 NovelTitle = bookmark.Novel.Title,
+                BookmarkId = bookmark.Id,
                 Url = bookmark.Url,
                 Notes = bookmark.Notes,
                 IsSaved = bookmark.IsSaved,
