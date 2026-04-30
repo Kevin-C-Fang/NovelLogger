@@ -3,18 +3,10 @@ using Moq;
 using NovelLogger.Controllers;
 using NovelLogger.Data.Repositories;
 using NovelLogger.Models.DTOs;
-using NovelLogger.Models.Entities;
 using NovelLogger.Models.ViewModels;
-using NovelLogger.Services.Implementations;
 using NovelLogger.Services.Interfaces;
 using NovelLogger.Utility;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Policy;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace NovelLogger.Tests.Controllers
 {
@@ -70,6 +62,7 @@ namespace NovelLogger.Tests.Controllers
 
             Assert.Same(vm, model);
             Assert.Equal(NovelStatusStrings.StatusOptions, model.NovelStatusList);
+            _bookmarkServiceMock.Verify(s => s.CreateBookmark(It.IsAny<CreateBookmarkDto>()),Times.Never);
         }
 
         [Fact]
@@ -84,7 +77,12 @@ namespace NovelLogger.Tests.Controllers
                 NovelStatus = "Completed",
             };
 
-            _bookmarkServiceMock.Setup(s => s.CreateBookmark(It.IsAny<CreateBookmarkDto>()))
+            _bookmarkServiceMock.Setup(s => s.CreateBookmark(It.Is<CreateBookmarkDto>(dto =>
+                    dto.NovelTitle == vm.NovelTitle &&
+                    dto.Url == vm.Url &&
+                    dto.Notes == vm.Notes &&
+                    dto.IsSaved == vm.IsSaved &&
+                    dto.NovelStatus == vm.NovelStatus)))
                 .Returns(ServiceResult.NovelTitleNormDuplicate);
 
             var result = _controller.Create(vm);
@@ -114,7 +112,12 @@ namespace NovelLogger.Tests.Controllers
                 NovelStatus = "Completed",
             };
 
-            _bookmarkServiceMock.Setup(s => s.CreateBookmark(It.IsAny<CreateBookmarkDto>()))
+            _bookmarkServiceMock.Setup(s => s.CreateBookmark(It.Is<CreateBookmarkDto>(dto =>
+                    dto.NovelTitle == vm.NovelTitle &&
+                    dto.Url == vm.Url &&
+                    dto.Notes == vm.Notes &&
+                    dto.IsSaved == vm.IsSaved &&
+                    dto.NovelStatus == vm.NovelStatus)))
                 .Returns(ServiceResult.BookmarkUrlDuplicate);
 
             var result = _controller.Create(vm);
@@ -133,7 +136,7 @@ namespace NovelLogger.Tests.Controllers
         }
 
         [Fact]
-        public void Create_Post_ValidNovelAndSuccessfulCreation_ReturnsRedirectToIndex()
+        public void Create_Post_ValidBookmarkAndSuccessfulCreation_ReturnsRedirectToIndex()
         {
             BookmarkVM vm = new BookmarkVM()
             {
@@ -144,7 +147,13 @@ namespace NovelLogger.Tests.Controllers
                 NovelStatus = "Completed",
             };
 
-            _bookmarkServiceMock.Setup(s => s.CreateBookmark(It.IsAny<CreateBookmarkDto>())).Returns(ServiceResult.Success);
+            _bookmarkServiceMock.Setup(s => s.CreateBookmark(It.Is<CreateBookmarkDto>(dto =>
+                    dto.NovelTitle == vm.NovelTitle &&
+                    dto.Url == vm.Url &&
+                    dto.Notes == vm.Notes &&
+                    dto.IsSaved == vm.IsSaved &&
+                    dto.NovelStatus == vm.NovelStatus)))
+                .Returns(ServiceResult.Success);
 
             var result = _controller.Create(vm);
 
@@ -196,7 +205,7 @@ namespace NovelLogger.Tests.Controllers
         }
 
         [Fact]
-        public void Edit_Get_NovelNotFound_ReturnsNotFound()
+        public void Edit_Get_BookmarkNotFound_ReturnsNotFound()
         {
             int bookmarkId = 1;
             _bookmarkServiceMock
@@ -259,6 +268,7 @@ namespace NovelLogger.Tests.Controllers
 
             Assert.Same(vm, model);
             Assert.Equal(NovelStatusStrings.StatusOptions, model.NovelStatusList);
+            _bookmarkServiceMock.Verify(s => s.EditBookmark(It.IsAny<EditBookmarkDto>()),Times.Never);
         }
 
         [Fact]
@@ -266,6 +276,7 @@ namespace NovelLogger.Tests.Controllers
         {
             BookmarkVM vm = new BookmarkVM()
             {
+                BookmarkId = 1,
                 NovelTitle = "Test Novel",
                 Url = "https://www.google.com/",
                 Notes = "Notes",
@@ -273,7 +284,12 @@ namespace NovelLogger.Tests.Controllers
                 NovelStatus = "Completed",
             };
 
-            _bookmarkServiceMock.Setup(s => s.EditBookmark(It.IsAny<EditBookmarkDto>()))
+            _bookmarkServiceMock.Setup(s => s.EditBookmark(It.Is<EditBookmarkDto>(dto =>
+                    dto.BookmarkId == vm.BookmarkId &&
+                    dto.Url == vm.Url &&
+                    dto.Notes == vm.Notes &&
+                    dto.IsSaved == vm.IsSaved &&
+                    dto.NovelStatus == vm.NovelStatus)))
                 .Returns(ServiceResult.BookmarkUrlDuplicate);
 
             var result = _controller.Edit(vm);
@@ -303,8 +319,12 @@ namespace NovelLogger.Tests.Controllers
                 NovelStatus = "Completed",
             };
 
-            _bookmarkServiceMock
-                .Setup(s => s.EditBookmark(It.IsAny<EditBookmarkDto>()))
+            _bookmarkServiceMock.Setup(s => s.EditBookmark(It.Is<EditBookmarkDto>(dto =>
+                    dto.NovelTitle == vm.NovelTitle &&
+                    dto.Url == vm.Url &&
+                    dto.Notes == vm.Notes &&
+                    dto.IsSaved == vm.IsSaved &&
+                    dto.NovelStatus == vm.NovelStatus)))
                 .Returns(ServiceResult.Success);
 
             var result = _controller.Edit(vm);
@@ -412,11 +432,11 @@ namespace NovelLogger.Tests.Controllers
         [Fact]
         public void Delete_BookmarkNotFound_ReturnsFailedJson()
         {
-            int novelId = 1;
+            int bookmarkId = 1;
 
-            _bookmarkServiceMock.Setup(s => s.DeleteBookmark(novelId)).Returns(ServiceResult.NotFound);
+            _bookmarkServiceMock.Setup(s => s.DeleteBookmark(bookmarkId)).Returns(ServiceResult.NotFound);
 
-            var result = _controller.Delete(novelId);
+            var result = _controller.Delete(bookmarkId);
 
             var jsonResult = Assert.IsType<JsonResult>(result);
 
@@ -431,11 +451,11 @@ namespace NovelLogger.Tests.Controllers
         [Fact]
         public void Delete_BookmarkFound_ReturnsSuccessJson()
         {
-            int novelId = 1;
+            int bookmarkId = 1;
 
-            _bookmarkServiceMock.Setup(s => s.DeleteBookmark(novelId)).Returns(ServiceResult.Success);
+            _bookmarkServiceMock.Setup(s => s.DeleteBookmark(bookmarkId)).Returns(ServiceResult.Success);
 
-            var result = _controller.Delete(novelId);
+            var result = _controller.Delete(bookmarkId);
 
             var jsonResult = Assert.IsType<JsonResult>(result);
             var value = jsonResult.Value;

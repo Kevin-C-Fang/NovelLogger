@@ -1,19 +1,11 @@
-﻿using Castle.Core.Logging;
-using Microsoft.AspNetCore.Diagnostics;
+﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NovelLogger.Controllers;
 using NovelLogger.Models.ViewModels;
-using NovelLogger.Services.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NovelLogger.Tests.Controllers
 {
@@ -71,7 +63,7 @@ namespace NovelLogger.Tests.Controllers
         [Fact]
         public void Privacy_Get_ReturnsView()
         {
-            var result = _controller.Index();
+            var result = _controller.Privacy();
             Assert.IsType<ViewResult>(result);
         }
 

@@ -1,5 +1,4 @@
-﻿using Humanizer;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Moq;
 using NovelLogger.Data.Repositories;
 using NovelLogger.Data.Repositories.IRepositories;
@@ -8,13 +7,8 @@ using NovelLogger.Models.Entities;
 using NovelLogger.Services.Implementations;
 using NovelLogger.Services.Interfaces;
 using NovelLogger.Utility;
-using NuGet.ContentModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Linq.Expressions;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NovelLogger.Tests.Services
 {
@@ -86,10 +80,17 @@ namespace NovelLogger.Tests.Services
                 NovelStatus = NovelStatusStrings.UpToDate,
             };
 
-            _novelServiceMock.Setup(s => s.GetViewNovelDto(dto.TitleNormalized))
-                .Returns((ViewNovelDto)null);
+            var viewNovelDto = new ViewNovelDto
+            {
+                NovelId = 1,
+                NovelTitle = "Test Novel",
+                NovelStatus = NovelStatusStrings.UpToDate,
+            };
 
-            _novelServiceMock.Setup(s => s.CreateNovel(It.IsAny<CreateNovelDto>()))
+            _novelServiceMock.Setup(s => s.GetViewNovelDto(dto.TitleNormalized))
+                .Returns(viewNovelDto);
+
+            _novelServiceMock.Setup(s => s.EditNovel(It.IsAny<EditNovelDto>()))
                 .Returns(ServiceResult.Failed);
 
             var result = _bookmarkService.CreateBookmark(dto);
@@ -446,6 +447,62 @@ namespace NovelLogger.Tests.Services
         }
 
         [Fact]
+        public void EditBookmark_WhenUrlDuplicateExists_ReturnsBookmarkUrlDuplicate()
+        {
+            var dto = new EditBookmarkDto
+            {
+                BookmarkId = 1,
+                Url = "https://duplicate.com",
+                Notes = "notes",
+                IsSaved = true,
+                NovelStatus = NovelStatusStrings.Completed
+            };
+
+            var existingBookmark = new Bookmark
+            {
+                Id = 1,
+                UserId = _userId,
+                Url = "https://example.com",
+                Notes = "notes",
+                IsSaved = true,
+                Novel = new Novel
+                {
+                    Id = 1,
+                    Title = "Test Novel",
+                    NovelStatus = NovelStatusStrings.Completed
+                }
+            };
+
+            var urlDuplicateBookmark = new Bookmark
+            {
+                Id = 2,
+                UserId = _userId,
+                Url = "https://duplicate.com",
+                Notes = "duplicate notes",
+                IsSaved = true,
+                Novel = new Novel
+                {
+                    Id = 2,
+                    Title = "Other Novel",
+                    NovelStatus = NovelStatusStrings.Completed
+                }
+            };
+
+            _unitOfWorkMock.SetupSequence(u => u.Bookmark.GetFirstOrDefault(
+                    It.IsAny<Expression<Func<Bookmark, bool>>>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>()
+                ))
+                .Returns(existingBookmark)
+                .Returns(urlDuplicateBookmark);
+
+            var result = _bookmarkService.EditBookmark(dto);
+
+            Assert.Equal(ServiceResult.BookmarkUrlDuplicate, result);
+            _unitOfWorkMock.Verify(u => u.TrySave(), Times.Never);
+        }
+
+        [Fact]
         public void EditBookmark_WhenBookmarkExists_UpdatesBookmarkAndNovelStatus()
         {
             var bookmark = new Bookmark
@@ -472,11 +529,13 @@ namespace NovelLogger.Tests.Services
                 NovelStatus = NovelStatusStrings.Completed
             };
 
-            _unitOfWorkMock.Setup(u => u.Bookmark.GetFirstOrDefault(
-                    It.IsAny<System.Linq.Expressions.Expression<Func<Bookmark, bool>>>(),
-                    "Novel",
-                    true
-                )).Returns(bookmark);
+            _unitOfWorkMock.SetupSequence(u => u.Bookmark.GetFirstOrDefault(
+                    It.IsAny<Expression<Func<Bookmark, bool>>>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>()
+                ))
+                .Returns(bookmark)
+                .Returns((Bookmark?)null);
 
             _unitOfWorkMock.Setup(u => u.TrySave()).Returns(ServiceResult.Success);
 
@@ -487,6 +546,54 @@ namespace NovelLogger.Tests.Services
             Assert.Equal(dto.Notes, bookmark.Notes);
             Assert.Equal(dto.NovelStatus, bookmark.Novel.NovelStatus);
             Assert.Equal(dto.IsSaved, bookmark.IsSaved);
+            _unitOfWorkMock.Verify(u => u.TrySave(), Times.Once);
+        }
+
+        [Fact]
+        public void EditBookmark_WhenBookmarkAlreadySaved_DoesNotChangeIsSavedToFalse()
+        {
+            var bookmark = new Bookmark
+            {
+                Id = 1,
+                UserId = _userId,
+                Url = "https://example.com",
+                Notes = "old notes",
+                IsSaved = true,
+                Novel = new Novel
+                {
+                    Id = 1,
+                    Title = "Test Novel",
+                    NovelStatus = NovelStatusStrings.UpToDate
+                }
+            };
+
+            var dto = new EditBookmarkDto
+            {
+                BookmarkId = 1,
+                Url = "https://example2.com",
+                Notes = "new notes",
+                IsSaved = false,
+                NovelStatus = NovelStatusStrings.Completed
+            };
+
+            _unitOfWorkMock.SetupSequence(u => u.Bookmark.GetFirstOrDefault(
+                    It.IsAny<Expression<Func<Bookmark, bool>>>(),
+                    It.IsAny<string?>(),
+                    It.IsAny<bool>()
+                ))
+                .Returns(bookmark)
+                .Returns((Bookmark?)null);
+
+            _unitOfWorkMock.Setup(u => u.TrySave())
+                .Returns(ServiceResult.Success);
+
+            var result = _bookmarkService.EditBookmark(dto);
+
+            Assert.Equal(ServiceResult.Success, result);
+            Assert.True(bookmark.IsSaved);
+            Assert.Equal(dto.Url, bookmark.Url);
+            Assert.Equal(dto.Notes, bookmark.Notes);
+            Assert.Equal(dto.NovelStatus, bookmark.Novel.NovelStatus);
             _unitOfWorkMock.Verify(u => u.TrySave(), Times.Once);
         }
 

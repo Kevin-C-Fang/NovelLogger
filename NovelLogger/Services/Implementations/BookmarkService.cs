@@ -90,8 +90,16 @@ namespace NovelLogger.Services.Implementations
                 return ServiceResult.NotFound;
             }
 
-            bookmark.Novel.NovelStatus = dto.NovelStatus;
+            Bookmark? urlDupliateBookmark = _unitOfWork.Bookmark.GetFirstOrDefault(
+                u => u.UserId == userId && u.Url == dto.Url && u.Id != dto.BookmarkId, 
+                includeProperties: "Novel", false);
 
+            if (urlDupliateBookmark != null)
+            {
+                return ServiceResult.BookmarkUrlDuplicate;
+            }
+
+            bookmark.Novel.NovelStatus = dto.NovelStatus;
             bookmark.Notes = dto.Notes;
             bookmark.Url = dto.Url;
 

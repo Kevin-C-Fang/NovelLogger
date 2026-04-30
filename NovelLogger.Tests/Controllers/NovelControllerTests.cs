@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Moq;
 using NovelLogger.Controllers;
 using NovelLogger.Data.Repositories;
@@ -7,12 +6,6 @@ using NovelLogger.Models.DTOs;
 using NovelLogger.Models.ViewModels;
 using NovelLogger.Services.Interfaces;
 using NovelLogger.Utility;
-using NuGet.ContentModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NovelLogger.Tests.Controllers
 {
@@ -63,6 +56,7 @@ namespace NovelLogger.Tests.Controllers
 
             Assert.Same(vm, model);
             Assert.Equal(NovelStatusStrings.StatusOptions, model.NovelStatusList);
+            _novelServiceMock.Verify(s => s.CreateNovel(It.IsAny<CreateNovelDto>()),Times.Never);
         }
 
         [Fact] 
@@ -74,7 +68,9 @@ namespace NovelLogger.Tests.Controllers
                 NovelStatus = "Completed"
             };
 
-            _novelServiceMock.Setup(s => s.CreateNovel(It.IsAny<CreateNovelDto>()))
+            _novelServiceMock.Setup(s => s.CreateNovel(It.Is<CreateNovelDto>(dto =>
+                    dto.NovelTitle == vm.NovelTitle &&
+                    dto.NovelStatus == vm.NovelStatus)))
                 .Returns(ServiceResult.NovelTitleNormDuplicate);
 
             var result = _controller.Create(vm);
@@ -101,8 +97,9 @@ namespace NovelLogger.Tests.Controllers
                 NovelStatus = "Completed"
             };
 
-            _novelServiceMock
-                .Setup(s => s.CreateNovel(It.IsAny<CreateNovelDto>()))
+            _novelServiceMock.Setup(s => s.CreateNovel(It.Is<CreateNovelDto>(dto =>
+                    dto.NovelTitle == vm.NovelTitle &&
+                    dto.NovelStatus == vm.NovelStatus)))
                 .Returns(ServiceResult.Success);
 
             var result = _controller.Create(vm);
@@ -166,6 +163,7 @@ namespace NovelLogger.Tests.Controllers
 
             Assert.Same(vm, model);
             Assert.Equal(NovelStatusStrings.StatusOptions, model.NovelStatusList);
+            _novelServiceMock.Verify(s => s.EditNovel(It.IsAny<EditNovelDto>()),Times.Never);
         }
 
         [Fact]
@@ -177,7 +175,9 @@ namespace NovelLogger.Tests.Controllers
                 NovelStatus = "Completed"
             };
 
-            _novelServiceMock.Setup(s => s.EditNovel(It.IsAny<EditNovelDto>()))
+            _novelServiceMock.Setup(s => s.EditNovel(It.Is<EditNovelDto>(dto =>
+                    dto.NovelTitle == vm.NovelTitle &&
+                    dto.NovelStatus == vm.NovelStatus)))
                 .Returns(ServiceResult.NotFound);
 
             var result = _controller.Edit(vm);
@@ -194,7 +194,9 @@ namespace NovelLogger.Tests.Controllers
                 NovelStatus = "Completed"
             };
 
-            _novelServiceMock.Setup(s => s.EditNovel(It.IsAny<EditNovelDto>()))
+            _novelServiceMock.Setup(s => s.EditNovel(It.Is<EditNovelDto>(dto =>
+                    dto.NovelTitle == vm.NovelTitle &&
+                    dto.NovelStatus == vm.NovelStatus)))
                 .Returns(ServiceResult.NovelTitleNormDuplicate);
 
             var result = _controller.Edit(vm);
@@ -221,8 +223,9 @@ namespace NovelLogger.Tests.Controllers
                 NovelStatus = "Completed"
             };
 
-            _novelServiceMock
-                .Setup(s => s.EditNovel(It.IsAny<EditNovelDto>()))
+            _novelServiceMock.Setup(s => s.EditNovel(It.Is<EditNovelDto>(dto =>
+                    dto.NovelTitle == vm.NovelTitle &&
+                    dto.NovelStatus == vm.NovelStatus)))
                 .Returns(ServiceResult.Success);
 
             var result = _controller.Edit(vm);

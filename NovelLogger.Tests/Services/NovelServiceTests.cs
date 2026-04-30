@@ -1,19 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Moq;
-using NovelLogger.Controllers;
 using NovelLogger.Data.Repositories;
 using NovelLogger.Data.Repositories.IRepositories;
 using NovelLogger.Models.DTOs;
 using NovelLogger.Models.Entities;
 using NovelLogger.Services.Implementations;
-using NovelLogger.Services.Interfaces;
 using NovelLogger.Utility;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace NovelLogger.Tests.Services
 {
@@ -124,7 +117,7 @@ namespace NovelLogger.Tests.Services
                     false))
                 .Returns((Novel?)null);
 
-            var result = _service.GetViewNovelDto("missing-title");
+            var result = _service.GetEditNovelDto(1);
 
             Assert.Null(result);
         }
