@@ -114,7 +114,7 @@ namespace NovelLogger.Services.Implementations
         public List<string> GetNovelTitleSuggestions(string title)
         {
             var userId = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            var suggestions = _unitOfWork.Novel.GetNovelTitleSuggestions(u => u.UserId == userId && u.TitleNormalized.Contains(StringUtilityMethods.NormalizeTitle(title)));
+            var suggestions = _unitOfWork.Novel.GetNovelTitleSuggestions(u => u.UserId == userId && u.TitleNormalized.StartsWith(StringUtilityMethods.NormalizeTitle(title)));
 
             return suggestions;
         }

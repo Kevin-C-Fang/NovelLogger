@@ -5,7 +5,9 @@ using NovelLogger.Data.Repositories.IRepositories;
 using NovelLogger.Models.DTOs;
 using NovelLogger.Models.Entities;
 using NovelLogger.Services.Implementations;
+using NovelLogger.Services.Interfaces;
 using NovelLogger.Utility;
+using System.Linq.Expressions;
 using System.Security.Claims;
 
 namespace NovelLogger.Tests.Services
@@ -298,31 +300,61 @@ namespace NovelLogger.Tests.Services
         }
 
         [Fact]
-        public void GetNovelTitleSuggestions_ReturnsSuggestions()
+        public void GetNovelTitleSuggestions_ValidTitle_ReturnsSuggestions()
         {
-            var suggestions = new List<string>
+            var title = "cha";
+
+            var expectedSuggestions = new List<string>
             {
                 "Chaotic Sword God",
-                "Chaotic",
-                "Chancellor Dammah"
+                "Chancellor Dammah",
             };
 
             _unitOfWorkMock
-                .Setup(u => u.Novel.GetNovelTitleSuggestions(
-                    It.IsAny<System.Linq.Expressions.Expression<Func<Novel, bool>>>()))
-                .Returns(suggestions);
+                .Setup(r => r.Novel.GetNovelTitleSuggestions(It.IsAny<Expression<Func<Novel, bool>>>()))
+                .Returns(expectedSuggestions);
 
-            var result = _service.GetNovelTitleSuggestions("cha");
+            var result = _service.GetNovelTitleSuggestions(title);
 
-            Assert.NotNull(result);
-            Assert.Equal(3, result.Count);
-            Assert.Contains(suggestions[0], result);
-            Assert.Contains(suggestions[1], result);
-            Assert.Contains(suggestions[2], result);
+            Assert.Equal(expectedSuggestions, result);
+            _unitOfWorkMock.Verify(u => u.Novel.GetNovelTitleSuggestions(It.IsAny<Expression<Func<Novel, bool>>>()),Times.Once);
+        }
 
-            _unitOfWorkMock.Verify(u => u.Novel.GetNovelTitleSuggestions(
-                It.IsAny<System.Linq.Expressions.Expression<Func<Novel, bool>>>()),
-                Times.Once);
+        [Fact]
+        public void GetNovelTitleSuggestions_ValidTitle_PassesFilterWithUserIdAndNormalizedTitleStartsWith()
+        {
+            var userId = "test-user-id";
+            var title = "Test";
+            var normalizedTitle = StringUtilityMethods.NormalizeTitle(title);
+
+            Expression<Func<Novel, bool>>? capturedFilter = null;
+
+            _unitOfWorkMock.Setup(r => r.Novel.GetNovelTitleSuggestions(It.IsAny<Expression<Func<Novel, bool>>>()))
+                           .Callback<Expression<Func<Novel, bool>>>(filter => capturedFilter = filter)
+                           .Returns(new List<string>());
+
+            var matchingNovel = new Novel
+            {
+                UserId = userId,
+                Title = "Test 1",
+                TitleNormalized = StringUtilityMethods.NormalizeTitle("Test 1")
+            };
+
+            var nonMatchingTitleNovel = new Novel
+            {
+                UserId = userId,
+                Title = "Chaotic Sword God",
+                TitleNormalized = "chaotic sword god"
+            };
+
+            _service.GetNovelTitleSuggestions(title);
+
+            Assert.NotNull(capturedFilter);
+
+            var compiledFilter = capturedFilter!.Compile();
+
+            Assert.True(compiledFilter(matchingNovel));
+            Assert.False(compiledFilter(nonMatchingTitleNovel));
         }
     }
 }
