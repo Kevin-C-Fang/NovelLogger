@@ -22,6 +22,7 @@ namespace NovelLogger.Data.Repositories
             Bookmark = new BookmarkRepository(_db);
             _logger = logger;
         }
+
         public ServiceResult TrySave()
         {
             try
